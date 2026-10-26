@@ -1,5 +1,10 @@
 # DNL Station — dnlstation.com.tr
 User-agent: *
 Allow: /
+Disallow: /panel/
+Disallow: /api/
+Disallow: /ekran/
+Disallow: /dogrula/
+Disallow: /sifre-yenile/
 
 Sitemap: https://dnlstation.com.tr/sitemap.xml

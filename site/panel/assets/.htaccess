@@ -1,0 +1,7 @@
+# Panel modülleri birbirini sürüm numarasıyla içe aktarır; tarayıcı her açılışta ETag ile doğrulasın
+<IfModule mod_headers.c>
+  Header set Cache-Control "no-cache"
+</IfModule>
+<IfModule mod_expires.c>
+  ExpiresActive Off
+</IfModule>

@@ -3,3 +3,10 @@ __pycache__/
 *.pyc
 tools/demo/*.html
 shots/
+# Sunucu tarafı çalışma dosyaları ve test çıktıları asla depoya girmez
+site/_app/storage/*
+!site/_app/storage/.gitkeep
+site/_app/storage/**/*
+tests/tmp/
+*.db
+dnlstation-config.php

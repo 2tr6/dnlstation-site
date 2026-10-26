@@ -4,6 +4,9 @@
 #   FTP_PROTOCOL  -> ftps (varsayılan) | ftp
 #   FTP_SERVER_DIR -> ./ (varsayılan: FTP hesabı doğrudan public_html'e açılıyorsa)
 #                     public_html/ (FTP hesabı ana dizine açılıyorsa)
+#   SITE_URL       -> https://dnlstation.com.tr (varsayılan)
+# İsteğe bağlı secret: MIGRATE_TOKEN -> sunucudaki dnlstation-config.php içindeki migrate_token ile aynı.
+#   Tanımlıysa yayından sonra veritabanı şeması otomatik güncellenir.
 name: Siteyi yayınla
 
 on:
@@ -42,3 +45,21 @@ jobs:
           local-dir: ./site/
           server-dir: ${{ vars.FTP_SERVER_DIR || './' }}
           dangerous-clean-slate: false
+          # Sunucudaki günlük/e-posta kayıtlarına dokunma
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.DS_Store
+            _app/storage/**
+
+      - name: Veritabanı şemasını güncelle
+        if: env.HAS_FTP == 'true'
+        env:
+          MIGRATE_TOKEN: ${{ secrets.MIGRATE_TOKEN }}
+          SITE_URL: ${{ vars.SITE_URL || 'https://dnlstation.com.tr' }}
+        run: |
+          if [ -z "$MIGRATE_TOKEN" ]; then echo "::notice::MIGRATE_TOKEN tanımlı değil; şema güncellemesi atlandı."; exit 0; fi
+          code=$(curl -sS -o resp.json -w '%{http_code}' -X POST "$SITE_URL/api/system/migrate" -H "X-Migrate-Token: $MIGRATE_TOKEN" -H "Content-Type: application/json" --data '{}')
+          echo "HTTP $code"; cat resp.json; echo
+          if [ "$code" = "503" ]; then echo "::warning::Sunucu yapılandırması (dnlstation-config.php) henüz yok ya da veritabanına bağlanılamıyor."; exit 0; fi
+          [ "$code" = "200" ] || { echo "::error::Şema güncellemesi başarısız."; exit 1; }

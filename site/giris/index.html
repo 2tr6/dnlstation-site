@@ -24,7 +24,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@500;600&display=swap">
-<link rel="stylesheet" href="/assets/css/style.css?v=7">
+<link rel="stylesheet" href="/assets/css/style.css?v=8">
 </head>
 <body>
 <div class="auth">
@@ -40,20 +40,20 @@
         <p class="auth-sub in1">Salonunuzu kaldığınız yerden yönetmeye devam edin.</p>
         <form class="form in2" id="login-form" novalidate>
           <div>
-            <label class="lbl" for="g-user">E-posta veya telefon</label>
-            <input id="g-user" name="kullanici" class="inp" type="text" autocomplete="username" placeholder="ornek@salon.com" required>
+            <label class="lbl" for="g-user">E-posta</label>
+            <input id="g-user" name="email" class="inp" type="email" autocomplete="username" inputmode="email" placeholder="ornek@salon.com" required maxlength="190">
           </div>
           <div>
             <div class="row-between" style="align-items:baseline">
               <label class="lbl" for="g-pw">Şifre</label>
-              <a href="#" data-soon style="font-size:13.5px">Şifremi unuttum</a>
+              <a href="/sifremi-unuttum/" style="font-size:13.5px">Şifremi unuttum</a>
             </div>
             <div class="pw">
-              <input id="g-pw" name="sifre" class="inp" type="password" autocomplete="current-password" placeholder="••••••••" required>
+              <input id="g-pw" name="password" class="inp" type="password" autocomplete="current-password" placeholder="••••••••" required maxlength="128">
               <button type="button" data-toggle-pw="g-pw" aria-label="Şifreyi göster"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button>
             </div>
           </div>
-          <label class="remember"><input type="checkbox" name="hatirla" checked>Beni hatırla</label>
+          <label class="remember"><input type="checkbox" name="remember" checked>Beni hatırla <span style="color:var(--muted-3);font-size:13px">(30 gün)</span></label>
           <button type="submit" class="btn btn-primary btn-lg btn-block">Giriş Yap</button>
           <div class="notice" id="notice" role="status" hidden></div>
         </form>
