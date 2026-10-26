@@ -67,7 +67,7 @@ button{font:inherit}
 .mmenu-foot .ig{margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;font-size:14px;color:var(--muted)}
 
 /* ---------- Section heads ---------- */
-.section{padding:120px 0 40px}
+.section{padding-top:120px;padding-bottom:40px}
 .eyebrow{display:inline-flex;align-items:center;gap:12px;margin:0;font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--lilac);font-weight:500}
 .eyebrow::before{content:'';width:20px;height:1px;background:var(--lilac)}
 .h2{margin:18px 0 0;font-family:var(--font-display);font-weight:700;font-size:clamp(32px,4.4vw,54px);line-height:1.05;letter-spacing:-.03em;color:var(--text-strong)}
@@ -380,7 +380,7 @@ legend{padding:0}
 @media (max-width:760px){
   .tilt{transform:none;animation:none}
   .hero-inner{padding:60px 0 56px;gap:44px}
-  .section{padding:88px 0 24px}
+  .section{padding-top:88px;padding-bottom:24px}
   .plan-pick{grid-template-columns:1fr}
   .mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .kpi strong{font-size:16px}
@@ -396,10 +396,15 @@ legend{padding:0}
   .shot-view img{object-fit:cover;object-position:top}
 }
 @media (max-width:600px){
-  .gal-tabs{flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;width:auto;scrollbar-width:none}
-  .gal-tabs::-webkit-scrollbar{display:none}
-  .gal-tabs button{flex:none}
-  .shot{border-radius:12px}
+  /* Sekmeler kaydırmasız: 3 + 2 düzen, ekran genişliğine sığar */
+  .gal-tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));width:100%;gap:4px;padding:4px}
+  .gal-tabs button{grid-column:span 2;min-height:42px;padding:0 6px;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* Kısa etiketler üst satırda, uzunlar alt satırda geniş */
+  #tab-kafe{order:2}#tab-rapor{order:3}#tab-hesap{order:4}#tab-tv{order:5}
+  #tab-hesap,#tab-tv{grid-column:span 3}
+}
+@media (max-width:380px){
+  .gal-tabs button{font-size:12.5px;padding:0 3px;letter-spacing:-.01em}
 }
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
