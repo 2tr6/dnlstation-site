@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="tr" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>document.documentElement.className=document.documentElement.className.replace('no-js','js')</script>
+<title>DNL Station | PlayStation Kafe ve Oyun Salonu Yönetim Programı</title>
+<meta name="description" content="PlayStation kafe, bilardo ve okey salonları için yönetim programı. Masa ve süre takibi, kol başı tarife, kafeterya ve Z raporu. 14 gün ücretsiz deneyin.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://dnlstation.com.tr/">
+<meta name="theme-color" content="#09090D">
+<meta name="color-scheme" content="dark">
+<meta name="author" content="DNL Station">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="DNL Station">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:url" content="https://dnlstation.com.tr/">
+<meta property="og:title" content="DNL Station | PlayStation Kafe ve Oyun Salonu Yönetim Programı">
+<meta property="og:description" content="Masalarınızı, sürelerinizi, kafeteryanızı ve kasanızı tek panelden yönetin. PlayStation, bilardo ve okey salonları için. 14 gün ücretsiz.">
+<meta property="og:image" content="https://dnlstation.com.tr/assets/img/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="DNL Station — PlayStation ve oyun salonları için yönetim paneli">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="DNL Station | PlayStation Kafe ve Oyun Salonu Yönetim Programı">
+<meta name="twitter:description" content="Masalarınızı, sürelerinizi, kafeteryanızı ve kasanızı tek panelden yönetin. 14 gün ücretsiz.">
+<meta name="twitter:image" content="https://dnlstation.com.tr/assets/img/og-image.png">
+
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="/assets/css/style.css?v=6">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://dnlstation.com.tr/#organization",
+      "name": "DNL Station",
+      "url": "https://dnlstation.com.tr/",
+      "logo": "https://dnlstation.com.tr/assets/img/icon-512.png",
+      "sameAs": ["https://www.instagram.com/dnlstation/"],
+      "parentOrganization": { "@type": "Organization", "name": "YataGirişim" }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://dnlstation.com.tr/#website",
+      "url": "https://dnlstation.com.tr/",
+      "name": "DNL Station",
+      "inLanguage": "tr-TR",
+      "publisher": { "@id": "https://dnlstation.com.tr/#organization" }
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "DNL Station",
+      "applicationCategory": "BusinessApplication",
+      "applicationSubCategory": "Oyun salonu yönetim programı",
+      "operatingSystem": "Web, Android, iOS, Windows, macOS",
+      "description": "PlayStation kafe, bilardo ve okey salonları için bulut tabanlı masa, süre, kafeterya ve kasa yönetim programı.",
+      "url": "https://dnlstation.com.tr/",
+      "inLanguage": "tr-TR",
+      "publisher": { "@id": "https://dnlstation.com.tr/#organization" },
+      "screenshot": [
+        "https://dnlstation.com.tr/assets/img/demo/masalar.webp",
+        "https://dnlstation.com.tr/assets/img/demo/raporlar.webp",
+        "https://dnlstation.com.tr/assets/img/demo/mobil.webp"
+      ],
+      "offers": [
+        { "@type": "Offer", "name": "Başlangıç (aylık)", "price": "159", "priceCurrency": "TRY" },
+        { "@type": "Offer", "name": "Pro (aylık)", "price": "259", "priceCurrency": "TRY" },
+        { "@type": "Offer", "name": "Salon+ (aylık)", "price": "449", "priceCurrency": "TRY" }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "Kurulum gerekiyor mu?", "acceptedAnswer": { "@type": "Answer", "text": "Hayır. DNL Station tarayıcı üzerinden çalışır. Dilerseniz telefonunuza ya da kasadaki bilgisayara uygulama gibi ekleyebilirsiniz; uygulama mağazasından indirme gerekmez." } },
+        { "@type": "Question", "name": "Kol sayısına göre ücretlendirme yapabilir miyim?", "acceptedAnswer": { "@type": "Answer", "text": "Evet. 2 kol ve 4 kol için ayrı saatlik ya da maç başı ücret tanımlayabilirsiniz. Oyun sırasında kol eklenirse fark hesaba otomatik yansır." } },
+        { "@type": "Question", "name": "Yalnızca PlayStation salonları mı kullanabilir?", "acceptedAnswer": { "@type": "Answer", "text": "Hayır. Bilardo, okey, langırt, masa tenisi, dart ve VR salonları da kullanabilir. Masası olan ve süreyle çalışan her salon için uygundur; her masa türüne ayrı tarife tanımlanır." } },
+        { "@type": "Question", "name": "Bilgisayar (PC) salonları için uygun mu?", "acceptedAnswer": { "@type": "Answer", "text": "Hayır. Bilgisayarları uzaktan yöneten internet kafe yazılımları bu ihtiyaç için daha uygundur. DNL Station PlayStation ve fiziksel oyun salonlarına odaklanır." } },
+        { "@type": "Question", "name": "Aynı anda birden fazla cihazdan kullanılabilir mi?", "acceptedAnswer": { "@type": "Answer", "text": "Evet. Kasa bilgisayarı, tablet ve telefon aynı anda çalışır; yapılan her değişiklik tüm cihazlara anında yansır." } },
+        { "@type": "Question", "name": "Paketimi sonradan değiştirebilir miyim?", "acceptedAnswer": { "@type": "Answer", "text": "Evet. İşletmeniz büyüdükçe paketinizi panelden tek tıkla yükseltebilir ya da düşürebilirsiniz; kalan süreniz yeni pakete aktarılır." } },
+        { "@type": "Question", "name": "Deneme süresi bitince ne olur?", "acceptedAnswer": { "@type": "Answer", "text": "Otomatik çekim yapılmaz. Memnun kalırsanız paketinizi seçerek devam edersiniz; tüm masalarınız ve kayıtlarınız olduğu gibi korunur." } },
+        { "@type": "Question", "name": "Verilerim güvende mi?", "acceptedAnswer": { "@type": "Answer", "text": "Verileriniz bulutta şifreli olarak saklanır ve düzenli yedeklenir. Verileriniz size aittir; dilediğiniz zaman Excel olarak dışa aktarabilirsiniz." } }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<a class="skip" href="#icerik">İçeriğe geç</a>
+
+<header class="site-header">
+  <nav class="nav" aria-label="Ana menü">
+    <a class="wordmark" href="/" aria-label="DNL Station ana sayfa">DNL</a>
+    <div class="nav-links">
+      <a href="#panel">Panel</a>
+      <a href="#ps">PlayStation</a>
+      <a href="#salonlar">Salonlar</a>
+      <a href="#ozellikler">Özellikler</a>
+      <a href="#fiyat">Paketler</a>
+      <a href="#sss">SSS</a>
+    </div>
+    <div class="nav-actions">
+      <a class="btn btn-ghost" href="/giris/">Giriş Yap</a>
+      <a class="btn btn-primary" href="/uye-ol/">Üye Ol</a>
+      <button type="button" class="hb" aria-label="Menüyü aç" aria-expanded="false" aria-controls="mmenu"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+  <div class="mmenu" id="mmenu" hidden>
+    <nav aria-label="Mobil menü">
+      <a href="#panel"><span><small>01</small><b>Panel</b></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
+      <a href="#ps"><span><small>02</small><b>PlayStation</b></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
+      <a href="#salonlar"><span><small>03</small><b>Salonlar</b></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
+      <a href="#ozellikler"><span><small>04</small><b>Özellikler</b></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
+      <a href="#fiyat"><span><small>05</small><b>Paketler</b></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
+      <a href="#sss"><span><small>06</small><b>SSS</b></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
+    </nav>
+    <div class="mmenu-foot">
+      <div class="row">
+        <a class="btn btn-ghost" href="/giris/">Giriş Yap</a>
+        <a class="btn btn-primary" href="/uye-ol/">Üye Ol</a>
+      </div>
+      <p>14 gün ücretsiz · Kart bilgisi istenmez · Taahhüt yok</p>
+      <a class="ig" href="https://www.instagram.com/dnlstation/" target="_blank" rel="noopener"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></svg>@dnlstation</a>
+    </div>
+  </div>
+</header>
+
+<main id="icerik">
+
+<!-- HERO -->
+<section class="hero" aria-labelledby="hero-title">
+  <div class="hero-bg" aria-hidden="true">
+    <div class="hero-grid"></div>
+    <div class="aur1"></div>
+    <div class="hero-fade"></div>
+  </div>
+  <div class="hero-inner">
+    <div class="hero-copy">
+      <p class="kicker in1"><i></i><span><span lang="en">PlayStation</span> ve oyun salonları için</span></p>
+      <h1 class="hero-title in2" id="hero-title">
+        <span class="word" id="word">PlayStation</span>
+        <span>salonunuz,</span>
+        <span class="accent">tek ekranda.</span>
+      </h1>
+      <p class="hero-sub in3">PlayStation, bilardo ve okey masalarınızın süresini, kafeteryasını ve kasasını tek panelden yönetin. Bilgisayarda, tablette ve telefonda aynı hızda.</p>
+      <div class="hero-ctas in4">
+        <a class="btn btn-primary btn-lg" href="/uye-ol/">14 gün ücretsiz deneyin <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
+        <a class="btn btn-ghost btn-lg" href="#panel">Paneli inceleyin</a>
+      </div>
+      <ul class="checks in4">
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Kurulum gerektirmez</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Kart bilgisi istenmez</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Taahhüt yok</li>
+      </ul>
+    </div>
+
+    <div class="stage in3">
+      <div class="tilt">
+        <div class="app" role="img" aria-label="DNL Station panelinde PlayStation, bilardo ve okey masalarının canlı takibi">
+          <div class="app-bar"><div class="l"><span class="dots"><i></i><i></i><i></i></span>Salon · Ana ekran</div><span class="live"><i></i>Canlı</span></div>
+          <div class="kpis">
+            <div class="kpi"><small>Bugünkü ciro</small><strong>₺<span id="revenue">4.139</span></strong></div>
+            <div class="kpi"><small>Dolu masa</small><strong>4<em>/6</em></strong></div>
+            <div class="kpi cy"><small>Kafeterya</small><strong>₺860</strong></div>
+          </div>
+          <div class="stations">
+            <div class="st" data-start="5052" data-rate="160" data-controllers="4"><div class="st-h"><b>PS5 · 1</b><span>Dolu</span></div><div><div class="st-t">1:24:12</div><div class="st-s">4 kol · ₺225</div></div></div>
+            <div class="st" data-start="1960" data-rate="100" data-controllers="2"><div class="st-h"><b>PS5 · 2</b><span>Dolu</span></div><div><div class="st-t">0:32:40</div><div class="st-s">2 kol · ₺54</div></div></div>
+            <div class="st warn" data-left="299"><div class="st-h"><b>PS5 · 3</b><span>Bitiyor</span></div><div><div class="st-t">-04:59</div><div class="st-s">2 kol · kalan süre</div></div></div>
+            <div class="st free"><div class="st-h"><b>PS5 · 4</b><span>Boş</span></div><div><div class="st-t">—</div><div class="st-s">Hazır</div></div></div>
+            <div class="st" data-start="2520" data-rate="120"><div class="st-h"><b>Bilardo · 1</b><span>Dolu</span></div><div><div class="st-t">0:42:00</div><div class="st-s">Saatlik · ₺84</div></div></div>
+            <div class="st" data-start="3300" data-rate="60"><div class="st-h"><b>Okey · 2</b><span>Dolu</span></div><div><div class="st-t">0:55:00</div><div class="st-s">Saatlik · ₺55</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="chipf f1" aria-hidden="true"><span class="ic cy"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6FE0EE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/></svg></span><span><small>PS5 · 1 hesabına eklendi</small><strong class="mono">+₺45 · 2 çay, 1 tost</strong></span></div>
+      <div class="chipf f2" aria-hidden="true"><span class="ic cy"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6FE0EE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span><span><small>Süre doluyor</small><strong>PS5 · 3 · 5 dk kaldı</strong></span></div>
+      <div class="chipf f3" aria-hidden="true"><span class="ic gr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7EDDB8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span><small>Vardiya kapandı</small><strong>Kasa farkı ₺0</strong></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<section class="marquee" aria-label="Öne çıkanlar">
+  <div class="mq-wrap"><ul class="mq">
+    <li class="chip">2 kol / 4 kol tarifesi</li><li class="chip">Maç başı ücret</li><li class="chip">Canlı süre takibi</li><li class="chip">Sesli süre uyarısı</li><li class="chip">Kafeterya</li><li class="chip">Z raporu</li><li class="chip">Müşteri ekranı</li><li class="chip">Masa taşıma</li><li class="chip">Gece tarifesi</li>
+    <li class="chip" aria-hidden="true">2 kol / 4 kol tarifesi</li><li class="chip" aria-hidden="true">Maç başı ücret</li><li class="chip" aria-hidden="true">Canlı süre takibi</li><li class="chip" aria-hidden="true">Sesli süre uyarısı</li><li class="chip" aria-hidden="true">Kafeterya</li><li class="chip" aria-hidden="true">Z raporu</li><li class="chip" aria-hidden="true">Müşteri ekranı</li><li class="chip" aria-hidden="true">Masa taşıma</li><li class="chip" aria-hidden="true">Gece tarifesi</li>
+  </ul></div>
+  <div class="mq-wrap"><ul class="mq rev">
+    <li class="chip">PlayStation</li><li class="chip">Bilardo</li><li class="chip">Okey</li><li class="chip">Langırt</li><li class="chip">Masa tenisi</li><li class="chip">Dart</li><li class="chip">VR</li><li class="chip">Karma salon</li><li class="chip">Personel yetkileri</li><li class="chip">Excel dışa aktarım</li><li class="chip">Bulut yedekleme</li>
+    <li class="chip" aria-hidden="true">PlayStation</li><li class="chip" aria-hidden="true">Bilardo</li><li class="chip" aria-hidden="true">Okey</li><li class="chip" aria-hidden="true">Langırt</li><li class="chip" aria-hidden="true">Masa tenisi</li><li class="chip" aria-hidden="true">Dart</li><li class="chip" aria-hidden="true">VR</li><li class="chip" aria-hidden="true">Karma salon</li><li class="chip" aria-hidden="true">Personel yetkileri</li><li class="chip" aria-hidden="true">Excel dışa aktarım</li><li class="chip" aria-hidden="true">Bulut yedekleme</li>
+  </ul></div>
+</section>
+
+<!-- PANEL GALLERY -->
+<section class="section container" id="panel" aria-labelledby="panel-title">
+  <div class="head center rv">
+    <p class="eyebrow">Panel önizlemesi</p>
+    <h2 class="h2" id="panel-title">İşletmenizi yönettiğiniz ekranlar.</h2>
+    <p class="lead">Masa açılışından hesap kapanışına, kafeteryadan ay sonu raporuna kadar tüm işlemler birkaç dokunuşla.</p>
+  </div>
+  <div class="rv" data-gallery>
+    <div class="gal-tabs" role="tablist" aria-label="Panel ekranları">
+      <button type="button" role="tab" id="tab-masalar" aria-controls="gal-view" aria-selected="true" data-cap="<b>Masalar.</b> Tüm masalarınızın durumu tek bakışta. Dolu, boş, süresi dolmak üzere ve rezerve masalar ayrı renklerle gösterilir; seçtiğiniz masanın süresi, tarifesi ve kafeterya hesabı sağ panelde yer alır." data-cap-m="<b>Masalar.</b> Tüm masalarınızın durumu tek bakışta. Dolu, boş, süresi dolmak üzere ve rezerve masalar ayrı renklerle gösterilir; süre ve tutarlar canlı işler.">Masalar</button>
+      <button type="button" role="tab" id="tab-hesap" aria-controls="gal-view" aria-selected="false" tabindex="-1" data-cap="<b>Hesap kapatma.</b> Oyun ücreti ve kafeterya kalemleri otomatik toplanır. İndirim uygulayın; nakit, kart ya da bölünmüş ödeme alın. Para üstü otomatik hesaplanır.">Hesap kapatma</button>
+      <button type="button" role="tab" id="tab-kafe" aria-controls="gal-view" aria-selected="false" tabindex="-1" data-cap="<b>Kafeterya.</b> Ürünü seçin, masanın hesabına ekleyin ya da masa açmadan satın. Stok azaldığında panel sizi uyarır.">Kafeterya</button>
+      <button type="button" role="tab" id="tab-rapor" aria-controls="gal-view" aria-selected="false" tabindex="-1" data-cap="<b>Raporlar.</b> Günlük ciro, oyun ve kafeterya ayrımı, en çok kazandıran masalar ve saat bazında yoğunluk haritası. Tek tıkla Excel'e aktarın." data-cap-m="<b>Raporlar.</b> Ciro, oyun ve kafeterya gelirleri, önceki dönemle karşılaştırma ve en çok kazandıran masalar; hepsi telefonunuzda.">Raporlar</button>
+      <button type="button" role="tab" id="tab-tv" aria-controls="gal-view" aria-selected="false" tabindex="-1" data-cap="<b>Müşteri ekranı.</b> Masalar, kalan süreler ve ücretler salondaki TV'de görüntülenir. Müşterileriniz sormadan görür." data-cap-m="<b>Müşteri ekranı.</b> Salon TV'sinde nelerin görüneceğini telefonunuzdan yönetin; ücretler, süre uyarıları ve boş masalar tek dokunuşla açılır ya da kapanır.">Müşteri ekranı</button>
+    </div>
+    <div class="gal">
+      <div class="shot">
+        <div class="shot-bar" aria-hidden="true"><span class="dots"><i></i><i></i><i></i></span><span>DNL Station · Panel</span><span>Canlı</span></div>
+        <div class="shot-view" id="gal-view" role="tabpanel" aria-live="polite">
+          <picture><source media="(max-width: 760px)" srcset="/assets/img/demo/masalar-m.webp" width="780" height="1688"><img class="on" src="/assets/img/demo/masalar.webp" width="1600" height="1000" loading="lazy" decoding="async" alt="DNL Station masalar ekranı: PlayStation, bilardo ve okey masalarının canlı süreleri ve hesapları"></picture>
+          <picture><source media="(max-width: 760px)" srcset="/assets/img/demo/hesap-kapat-m.webp" width="780" height="1688"><img src="/assets/img/demo/hesap-kapat.webp" width="1600" height="1000" loading="lazy" decoding="async" alt="Hesap kapatma ekranı: oyun ücreti, kafeterya kalemleri, indirim ve ödeme yöntemi seçimi"></picture>
+          <picture><source media="(max-width: 760px)" srcset="/assets/img/demo/kafeterya-m.webp" width="780" height="1688"><img src="/assets/img/demo/kafeterya.webp" width="1600" height="1000" loading="lazy" decoding="async" alt="Kafeterya ekranı: ürün listesi, stok durumu ve masa hesabına eklenen sepet"></picture>
+          <picture><source media="(max-width: 760px)" srcset="/assets/img/demo/raporlar-m.webp" width="780" height="1688"><img src="/assets/img/demo/raporlar.webp" width="1600" height="1000" loading="lazy" decoding="async" alt="Raporlar ekranı: ciro grafiği, gelir ayrımı ve en çok kazandıran masalar"></picture>
+          <picture><source media="(max-width: 760px)" srcset="/assets/img/demo/musteri-ekrani-m.webp" width="780" height="1688"><img src="/assets/img/demo/musteri-ekrani.webp" width="1600" height="900" loading="lazy" decoding="async" alt="Müşteri ekranı: salon TV'sinde masaların durumu, süreleri ve ücretleri"></picture>
+        </div>
+      </div>
+    </div>
+    <p class="shot-cap"><b>Masalar.</b> Tüm masalarınızın durumu tek bakışta. Dolu, boş, süresi dolmak üzere ve rezerve masalar ayrı renklerle gösterilir; seçtiğiniz masanın süresi, tarifesi ve kafeterya hesabı sağ panelde yer alır.</p>
+    <span class="zoom-hint">Ekranı büyütmek için görsele dokunun.</span>
+    <span class="preview-note">Arayüz önizlemesidir; görsellerde örnek veriler kullanılmıştır.</span>
+  </div>
+</section>
+
+<!-- SALON TYPES -->
+<section class="section container" id="salonlar" aria-labelledby="salonlar-title">
+  <div class="head rv">
+    <p class="eyebrow">Desteklenen salonlar</p>
+    <h2 class="h2" id="salonlar-title">PlayStation odaklı. Bilardodan okeye her masa için.</h2>
+    <p class="lead">PlayStation kafe programı olarak geliştirildi; masası olan ve süreyle çalışan her oyun salonunu yönetir. Her masa türüne ayrı tarife, hepsine tek kasa.</p>
+  </div>
+  <div class="grid-types">
+    <article class="card feature-hl rv">
+      <div class="row-between"><span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#A796FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 11h4"/><path d="M8 9v4"/><path d="M15 12h.01"/><path d="M18 10h.01"/><path d="M17.32 5H6.68a4 4 0 0 0-3.98 3.59l-.7 6.98A3 3 0 0 0 5 19c1 0 1.6-.5 2.2-1.2L9 16h6l1.8 1.8c.6.7 1.2 1.2 2.2 1.2a3 3 0 0 0 3-3.43l-.7-6.98A4 4 0 0 0 17.32 5z"/></svg></span><span class="tag">Ana odak</span></div>
+      <h3 class="h3">PlayStation salonu</h3>
+      <p class="p">2 kol / 4 kol, saatlik ya da maç başı ücretlendirme. Ek kol ve ek süre hesaba otomatik yansır.</p>
+    </article>
+    <article class="card rv"><span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#A796FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="10.5" r="2"/><circle cx="12" cy="15" r="2.5"/></svg></span><h3 class="h3">Bilardo salonu</h3><p class="p">Masa başı saatlik ücret, dakika hassasiyetinde hesaplama. Gece ve hafta içi tarifeleri otomatik uygulanır.</p></article>
+    <article class="card rv"><span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#A796FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="7" height="14" rx="1.5"/><rect x="14" y="5" width="7" height="14" rx="1.5"/><circle cx="6.5" cy="10" r="1.2"/><circle cx="17.5" cy="10" r="1.2"/></svg></span><h3 class="h3">Okey salonu</h3><p class="p">Masa açık kaldıkça süre işler; çay, tost ve servis kalemleri doğrudan masanın hesabına yazılır.</p></article>
+    <article class="card rv"><span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#A796FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M12 5v14"/><path d="M7 5v14"/><path d="M17 5v14"/></svg></span><h3 class="h3">Langırt</h3><p class="p">Saatlik ya da oyun başı ücret. Kısa oturumlar tek dokunuşla açılır ve kapanır.</p></article>
+    <article class="card rv"><span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#A796FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m14.5 14.5 5.5 5.5"/><circle cx="19" cy="5" r="1.5"/></svg></span><h3 class="h3">Masa tenisi</h3><p class="p">Masa süresi ve raket kirası aynı hesapta. Ekipman ürün olarak eklenir, stoktan düşer.</p></article>
+    <article class="card rv"><span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#A796FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span><h3 class="h3">Dart</h3><p class="p">Oyun başı ya da saatlik ücret. Hangi pistin dolu olduğunu ve oynanan oyun sayısını anlık görürsünüz.</p></article>
+    <article class="card rv"><span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#A796FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-3.5l-2-2.5h-3l-2 2.5H5a2 2 0 0 1-2-2Z"/><circle cx="8" cy="12" r="1.5"/><circle cx="16" cy="12" r="1.5"/></svg></span><h3 class="h3">VR alanı</h3><p class="p">Sabit süreli paketler. Süre bitmeden uyarı alırsınız, sıradaki müşteri bekletilmez.</p></article>
+    <article class="card rv"><span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#A796FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span><h3 class="h3">Karma salon</h3><p class="p">PlayStation, bilardo ve okey aynı çatı altındaysa hepsi tek ekranda; her türe ayrı tarife, tek kasa.</p></article>
+  </div>
+</section>
+
+<!-- PS: tariff demo -->
+<section class="section container" id="ps" aria-labelledby="ps-title">
+  <div class="split">
+    <div class="rv">
+      <p class="eyebrow"><span><span lang="en">PlayStation</span> salonları için</span></p>
+      <h2 class="h2" id="ps-title">Nasıl ücret alıyorsanız, panel öyle hesaplar.</h2>
+      <p class="lead" style="max-width:500px">Kol sayısına, saate ya da maç sayısına göre. Gece tarifesi, ek kol ve ek süre; hesap anında güncellenir.</p>
+      <ul class="ps-list">
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>2 kol / 4 kol tarifesi.</b> Oyun ortasında kol eklenirse fark otomatik eklenir.</span></li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>Saatlik veya maç başı.</b> Futbol oyunu gecelerinde maç sayısına göre ücretlendirin.</span></li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>Masa taşıma.</b> Müşteri başka bir TV'ye geçtiğinde süre ve hesap da taşınır.</span></li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>Saate göre fiyat.</b> Gece ya da hafta içi gündüz indirimi otomatik devreye girer.</span></li>
+      </ul>
+    </div>
+    <div class="rv">
+      <div class="tariff" id="tariff">
+        <div class="row-between">
+          <div><h3 class="disp" style="margin:0;font-weight:600;font-size:19px;color:#EDEBF5">Tarife hesaplayıcı</h3><p style="margin:4px 0 0;font-size:13px;color:#858298">Örnek tarifeyle deneyin</p></div>
+          <span class="tariff-badge">PS5 · 2</span>
+        </div>
+        <p class="lbl" id="l-kol">Kol sayısı</p>
+        <div class="seg c2" role="group" aria-labelledby="l-kol">
+          <button type="button" class="opt" data-kol="2" aria-pressed="false">2 kol</button>
+          <button type="button" class="opt" data-kol="4" aria-pressed="true">4 kol</button>
+        </div>
+        <p class="lbl" id="l-mode">Ücretlendirme</p>
+        <div class="seg c2" role="group" aria-labelledby="l-mode">
+          <button type="button" class="opt" data-mode="hour" aria-pressed="true">Saatlik</button>
+          <button type="button" class="opt" data-mode="match" aria-pressed="false">Maç başı</button>
+        </div>
+        <p class="lbl" id="l-qty">Süre</p>
+        <div class="seg c4" role="group" aria-labelledby="l-qty" id="qty"></div>
+        <div class="total">
+          <div><small>Müşterinin ödeyeceği</small><output id="total" aria-live="polite">₺320</output></div>
+          <div class="bd" id="breakdown">4 kol · ₺160/sa × 2</div>
+        </div>
+        <p class="note-s">Örnek fiyatlardır. Tarifelerinizi panelden kendiniz belirlersiniz.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section container" id="ozellikler" aria-labelledby="oz-title">
+  <div class="head rv">
+    <p class="eyebrow">Özellikler</p>
+    <h2 class="h2" id="oz-title">Salon yönetimi için gereken her şey.</h2>
+    <p class="lead">Açılıştan gece kapanışına kadar; karmaşık menüler yok, her şey olması gereken yerde.</p>
+  </div>
+  <div class="grid-big">
+    <article class="card rv" style="padding:32px">
+      <span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#A796FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+      <h3 class="h3" style="font-size:22px">Canlı masa ve süre takibi</h3>
+      <p class="p" style="font-size:15.5px">Sınırsız masa. Açık süre, sabit süre ya da paket; tutar saniye saniye işler, boş masaları bir bakışta görürsünüz.</p>
+      <div class="mini-grid" aria-hidden="true">
+        <div class="mini"><small>PS5 · 1</small><strong data-mini-start="5052">1:24</strong></div>
+        <div class="mini free"><small>PS5 · 4</small><strong>Boş</strong></div>
+        <div class="mini warn"><small>PS5 · 3</small><strong data-mini-left="299">-04:59</strong></div>
+        <div class="mini"><small>Bilardo</small><strong data-mini-start="2520">0:42</strong></div>
+      </div>
+    </article>
+    <article class="card rv" style="padding:32px">
+      <span class="ic cy"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#6FE0EE" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15v2"/><path d="M11 11v6"/><path d="M15 7v10"/><path d="M19 12v5"/></svg></span>
+      <h3 class="h3" style="font-size:22px">Anlaşılır raporlar</h3>
+      <p class="p" style="font-size:15.5px">En yoğun saatler, en çok kazandıran masalar, en çok satan ürünler. Önceki dönemle karşılaştırın, tek tıkla Excel'e aktarın.</p>
+      <div class="chart" aria-hidden="true">
+        <div class="chart-h"><span>Haftalık ciro</span><span>örnek veri</span></div>
+        <div class="bars">
+          <div><i style="height:38%"></i><span>Pzt</span></div>
+          <div><i style="height:44%"></i><span>Sal</span></div>
+          <div><i style="height:40%"></i><span>Çar</span></div>
+          <div><i style="height:54%;background:#352E6E"></i><span>Per</span></div>
+          <div><i style="height:74%;background:#5A42D6"></i><span>Cum</span></div>
+          <div><i style="height:96%;background:#8A73FF"></i><span style="color:#CFC6FF">Cmt</span></div>
+          <div><i style="height:62%;background:#4535A8"></i><span>Paz</span></div>
+        </div>
+      </div>
+    </article>
+  </div>
+  <div class="grid-auto" style="margin-top:12px">
+    <article class="card rv"><span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#A796FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span><h3 class="h3">Süre dolmadan bildirim</h3><p class="p">Sesli uyarı ve telefon bildirimi. Panel kapalıyken bile süresi dolan masayı kaçırmazsınız.</p></article>
+    <article class="card rv"><span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#A796FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M6 2v2"/><path d="M10 2v2"/><path d="M14 2v2"/></svg></span><h3 class="h3">Kafeterya ve stok</h3><p class="p">İçecek ve yiyecekler masanın hesabına eklenir. Masa açmadan hızlı satış yapılır; stok otomatik düşer.</p></article>
+    <article class="card rv"><span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#A796FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6"/><path d="M16 12h-6"/><path d="M13 16h-3"/></svg></span><h3 class="h3">Vardiya ve Z raporu</h3><p class="p">Gün başı kasa, gün sonu sayım, fark otomatik hesaplanır. Hangi personelin ne sattığını net görürsünüz.</p></article>
+    <article class="card rv"><span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#A796FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="m17 2-5 5-5-5"/></svg></span><h3 class="h3">Salon TV'sinde müşteri ekranı</h3><p class="p">Masalar, kalan süre ve tutar salondaki TV'de. Müşteriniz sormadan görür, kasada tartışma yaşanmaz.</p></article>
+    <article class="card rv"><span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#A796FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><h3 class="h3">Personel ve yetkiler</h3><p class="p">Her çalışana ayrı hesap. İndirim ve rapor yetkilerini siz belirlersiniz; her işlem kayıt altına alınır.</p></article>
+    <article class="card rv"><span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#A796FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg></span><h3 class="h3">Hatalı kapatmayı geri alın</h3><p class="p">Yoğun saatte yanlışlıkla kapatılan masa tek dokunuşla geri açılır; süre, ürünler ve ödemeler eksiksiz geri gelir.</p></article>
+    <article class="card rv"><span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#A796FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg></span><h3 class="h3">Anlık senkronizasyon</h3><p class="p">Kasada açılan masa telefonunuzda aynı anda görünür. Birden fazla cihaz, sıfır çakışma.</p></article>
+    <article class="card rv"><span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#A796FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg></span><h3 class="h3">Güvenli ve yedekli</h3><p class="p">Verileriniz bulutta şifreli saklanır ve düzenli yedeklenir. Verileriniz size aittir, istediğiniz an dışa aktarabilirsiniz.</p></article>
+    <article class="card rv"><span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#A796FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5Z"/><path d="m3 8 9 5 9-5"/><path d="M12 13v8"/></svg></span><h3 class="h3">Stok takibi</h3><p class="p">Satılan her ürün stoktan düşer. Azalan ürünler için uyarı alır, siparişinizi zamanında verirsiniz.</p></article>
+  </div>
+</section>
+
+<!-- MOBILE -->
+<section class="section container" id="mobil" aria-labelledby="mobil-title">
+  <div class="split">
+    <div class="rv">
+      <div class="phone-stage">
+        <div class="phone"><img src="/assets/img/demo/mobil.webp" width="780" height="1688" loading="lazy" decoding="async" alt="DNL Station mobil ekranı: günlük ciro, süresi dolan masa bildirimi ve masa listesi"></div>
+        <div class="phone-chip" aria-hidden="true"><span class="ic cy" style="width:30px;height:30px;border-radius:7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6FE0EE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span><span><small>Bildirim</small><strong>PS5 · 3 · 4 dk kaldı</strong></span></div>
+        <div class="phone-chip l" aria-hidden="true"><span class="ic gr" style="width:30px;height:30px;border-radius:7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7EDDB8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span><small>Okey · 1 kapandı</small><strong class="mono">+₺215</strong></span></div>
+      </div>
+    </div>
+    <div class="rv">
+      <p class="eyebrow">Mobil erişim</p>
+      <h2 class="h2" id="mobil-title">Salonunuz her an cebinizde.</h2>
+      <p class="lead" style="max-width:500px">Salonda dolaşırken, evdeyken ya da tatildeyken masalarınızı, cironuzu ve vardiyanızı telefonunuzdan takip edin.</p>
+      <ul class="ps-list">
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>Anlık bildirim.</b> Süresi dolan masa, kapanan hesap, azalan stok.</span></li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>Tek dokunuşla işlem.</b> Masa açın, ek süre verin, ürün ekleyin, hesabı kapatın.</span></li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>Uygulama mağazası gerekmez.</b> Ana ekrana ekleyin, uygulama gibi tam ekran açılsın.</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- STEPS -->
+<section class="section container" id="nasil" aria-labelledby="nasil-title">
+  <div class="head center rv">
+    <p class="eyebrow">Nasıl çalışır</p>
+    <h2 class="h2" id="nasil-title">Aynı gün kullanıma hazır.</h2>
+    <p class="lead">Kurulum, teknisyen ya da kablo gerekmez. Salonunuzu birkaç dakikada tanımlayın, işinize dönün.</p>
+  </div>
+  <div class="steps">
+    <ol>
+      <li class="rv"><span class="num">01</span><h3 class="h3">Hesabınızı oluşturun</h3><p class="p">İşletme adınız ve telefon numaranız yeterli. Kart bilgisi istenmez.</p></li>
+      <li class="rv"><span class="num">02</span><h3 class="h3">Masalarınızı ve tarifenizi girin</h3><p class="p">PS5, bilardo ve okey masalarınızı, saatlik ücretlerinizi ve menünüzü tek formda tanımlayın.</p></li>
+      <li class="rv"><span class="num hot">03</span><h3 class="h3">İlk masayı başlatın</h3><p class="p">Süreyi, hesabı ve raporları DNL Station tutar.</p></li>
+    </ol>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="section container" id="fiyat" aria-labelledby="fiyat-title">
+  <div class="head center rv">
+    <p class="eyebrow">Paketler</p>
+    <h2 class="h2" id="fiyat-title">İşletmenize uygun paketi seçin.</h2>
+    <p class="lead">Tüm paketlerde 14 gün ücretsiz deneme. Yıllık ödemede 2 ay ücretsiz.</p>
+    <div class="billing" role="group" aria-label="Ödeme dönemi">
+      <button type="button" data-bill="m" aria-pressed="false">Aylık</button>
+      <button type="button" data-bill="y" aria-pressed="true">Yıllık · 2 ay ücretsiz</button>
+    </div>
+  </div>
+  <div class="plans">
+    <article class="card plan rv" data-m="159" data-y="1590">
+      <div class="row-between" style="min-height:26px"><h3 class="plan-name">Başlangıç</h3></div>
+      <p class="p" style="margin-top:6px">Küçük ve yeni açılan salonlar için.</p>
+      <div class="price"><strong>₺1.590</strong><span>/ yıl</span></div>
+      <div class="price-note">Aylık ₺133 · 2 ay ücretsiz</div>
+      <a class="btn btn-ghost" href="/uye-ol/?paket=baslangic">Ücretsiz deneyin</a>
+      <hr>
+      <ul class="feats">
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>8 masaya kadar</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Canlı süre takibi</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Saatlik tarife</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Kafeterya ve hızlı satış</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Günlük ciro raporu</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>2 cihazda eş zamanlı kullanım</li>
+      </ul>
+    </article>
+    <article class="ring plan rv" data-m="259" data-y="2590">
+      <div class="row-between" style="min-height:26px"><h3 class="plan-name">Pro</h3><span class="badge-pop">En çok tercih edilen</span></div>
+      <p class="p" style="margin-top:6px">Çoğu salonun ihtiyaç duyduğu her şey.</p>
+      <div class="price"><strong>₺2.590</strong><span>/ yıl</span></div>
+      <div class="price-note">Aylık ₺216 · 2 ay ücretsiz</div>
+      <a class="btn btn-primary" href="/uye-ol/?paket=pro">14 gün ücretsiz başlayın</a>
+      <hr>
+      <ul class="feats">
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Sınırsız masa, tüm salon türleri</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Kol, saat ve maç başı tarife</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Kafeterya ve stok takibi</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Vardiya ve Z raporu</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Personel ve yetkiler</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Sesli ve push bildirim</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Salon TV'sinde müşteri ekranı</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Detaylı rapor ve Excel</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Sınırsız cihaz</li>
+      </ul>
+    </article>
+    <article class="card plan rv" data-m="449" data-y="4490">
+      <div class="row-between" style="min-height:26px"><h3 class="plan-name">Salon+</h3></div>
+      <p class="p" style="margin-top:6px">Büyük ve çok şubeli işletmeler için.</p>
+      <div class="price"><strong>₺4.490</strong><span>/ yıl</span></div>
+      <div class="price-note">Aylık ₺374 · 2 ay ücretsiz</div>
+      <a class="btn btn-ghost" href="/uye-ol/?paket=salon">Ücretsiz deneyin</a>
+      <hr>
+      <ul class="feats">
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Pro paketteki tüm özellikler</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Birden fazla şube tek hesapta</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Şubeler arası karşılaştırmalı rapor</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Personel performans raporu</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Öncelikli WhatsApp desteği</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A73FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Birebir kurulum desteği</li>
+      </ul>
+    </article>
+  </div>
+  <p class="fine">Otomatik çekim yapılmaz · Taahhüt yok · Paketinizi dilediğiniz zaman değiştirebilirsiniz</p>
+</section>
+
+<!-- FAQ -->
+<section class="section container" id="sss" aria-labelledby="sss-title" style="max-width:880px">
+  <div class="head center rv">
+    <p class="eyebrow">SSS</p>
+    <h2 class="h2" id="sss-title" style="font-size:clamp(30px,4vw,46px)">Sıkça sorulan sorular</h2>
+  </div>
+  <div class="faq rv">
+    <details name="sss" open><summary>Kurulum gerekiyor mu?<i aria-hidden="true">+</i></summary><p>Hayır. DNL Station tarayıcı üzerinden çalışır. Dilerseniz telefonunuza ya da kasadaki bilgisayara uygulama gibi ekleyebilirsiniz; uygulama mağazasından indirme gerekmez.</p></details>
+    <details name="sss"><summary>Kol sayısına göre ücretlendirme yapabilir miyim?<i aria-hidden="true">+</i></summary><p>Evet. 2 kol ve 4 kol için ayrı saatlik ya da maç başı ücret tanımlayabilirsiniz. Oyun sırasında kol eklenirse fark hesaba otomatik yansır.</p></details>
+    <details name="sss"><summary>Yalnızca PlayStation salonları mı kullanabilir?<i aria-hidden="true">+</i></summary><p>Hayır. Bilardo, okey, langırt, masa tenisi, dart ve VR salonları da kullanabilir. Masası olan ve süreyle çalışan her salon için uygundur; her masa türüne ayrı tarife tanımlanır.</p></details>
+    <details name="sss"><summary>Bilgisayar (PC) salonları için uygun mu?<i aria-hidden="true">+</i></summary><p>Hayır. Bilgisayarları uzaktan yöneten internet kafe yazılımları bu ihtiyaç için daha uygundur. DNL Station PlayStation ve fiziksel oyun salonlarına odaklanır.</p></details>
+    <details name="sss"><summary>Aynı anda birden fazla cihazdan kullanılabilir mi?<i aria-hidden="true">+</i></summary><p>Evet. Kasa bilgisayarı, tablet ve telefon aynı anda çalışır; yapılan her değişiklik tüm cihazlara anında yansır.</p></details>
+    <details name="sss"><summary>Paketimi sonradan değiştirebilir miyim?<i aria-hidden="true">+</i></summary><p>Evet. İşletmeniz büyüdükçe paketinizi panelden tek tıkla yükseltebilir ya da düşürebilirsiniz; kalan süreniz yeni pakete aktarılır.</p></details>
+    <details name="sss"><summary>Deneme süresi bitince ne olur?<i aria-hidden="true">+</i></summary><p>Otomatik çekim yapılmaz. Memnun kalırsanız paketinizi seçerek devam edersiniz; tüm masalarınız ve kayıtlarınız olduğu gibi korunur.</p></details>
+    <details name="sss"><summary>Verilerim güvende mi?<i aria-hidden="true">+</i></summary><p>Verileriniz bulutta şifreli olarak saklanır ve düzenli yedeklenir. Verileriniz size aittir; dilediğiniz zaman Excel olarak dışa aktarabilirsiniz.</p></details>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section container" aria-labelledby="cta-title" style="padding-bottom:96px">
+  <div class="cta rv">
+    <div class="cta-inner">
+      <div style="flex:1 1 420px;min-width:0">
+        <h2 id="cta-title">Salonunuzu profesyonelce yönetin.</h2>
+        <p>14 gün boyunca tüm özellikler açık. Memnun kalmazsanız hiçbir ücret ödemezsiniz.</p>
+        <div class="hero-ctas" style="margin-top:34px">
+          <a class="btn btn-primary btn-lg" href="/uye-ol/">Ücretsiz deneyin</a>
+          <a class="btn btn-ghost btn-lg" href="https://www.instagram.com/dnlstation/" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></svg>@dnlstation</a>
+        </div>
+      </div>
+      <div style="flex:0 1 280px;display:flex;justify-content:center" aria-hidden="true">
+        <div class="pixel-d" data-pixel-d></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="foot">
+    <div>
+      <a class="brand" href="/" aria-label="DNL Station ana sayfa"><img src="/assets/img/logo.svg" width="22" height="30" alt="" loading="lazy"><span class="brand-name" style="font-size:17px">DNL Station</span></a>
+      <p>PlayStation ve oyun salonları için bulut tabanlı yönetim paneli.</p>
+    </div>
+    <div class="foot-cols">
+      <div><h3>Ürün</h3><a href="#panel">Panel</a><a href="#ps">PlayStation</a><a href="#salonlar">Salonlar</a><a href="#ozellikler">Özellikler</a><a href="#fiyat">Paketler</a><a href="#sss">SSS</a></div>
+      <div><h3>Hesap</h3><a href="/giris/">Giriş Yap</a><a href="/uye-ol/">Üye Ol</a></div>
+      <div><h3>İletişim</h3><a href="https://www.instagram.com/dnlstation/" target="_blank" rel="noopener">@dnlstation</a><a href="https://dnlstation.com.tr/">dnlstation.com.tr</a></div>
+    </div>
+  </div>
+  <p class="copy">© 2026 DNL Station · Bir YataGirişim Markasıdır.</p>
+</footer>
+
+<script src="/assets/js/main.js?v=6" defer></script>
+</body>
+</html>

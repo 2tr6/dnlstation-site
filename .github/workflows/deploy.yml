@@ -1,0 +1,44 @@
+# main dalına her gönderimde site/ klasörünü FTP ile public_html'e yükler.
+# Gerekli Actions secret'ları: FTP_SERVER, FTP_USERNAME, FTP_PASSWORD
+# İsteğe bağlı Actions variable'ları:
+#   FTP_PROTOCOL  -> ftps (varsayılan) | ftp
+#   FTP_SERVER_DIR -> ./ (varsayılan: FTP hesabı doğrudan public_html'e açılıyorsa)
+#                     public_html/ (FTP hesabı ana dizine açılıyorsa)
+name: Siteyi yayınla
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-site
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      HAS_FTP: ${{ secrets.FTP_SERVER != '' && secrets.FTP_USERNAME != '' && secrets.FTP_PASSWORD != '' }}
+    steps:
+      - name: FTP bilgileri kontrolü
+        if: env.HAS_FTP != 'true'
+        run: echo "::warning::FTP secret'ları henüz tanımlı değil (FTP_SERVER, FTP_USERNAME, FTP_PASSWORD). Yayın atlandı."
+
+      - uses: actions/checkout@v4
+        if: env.HAS_FTP == 'true'
+
+      - name: public_html'e yükle (sadece değişen dosyalar)
+        if: env.HAS_FTP == 'true'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ${{ vars.FTP_PROTOCOL || 'ftps' }}
+          local-dir: ./site/
+          server-dir: ${{ vars.FTP_SERVER_DIR || './' }}
+          dangerous-clean-slate: false
