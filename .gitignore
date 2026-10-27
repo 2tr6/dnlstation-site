@@ -10,3 +10,4 @@ site/_app/storage/**/*
 tests/tmp/
 *.db
 dnlstation-config.php
+dnlstation-backups/

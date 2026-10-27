@@ -87,3 +87,13 @@ Kontrol: `https://dnlstation.com.tr/api/system/health` → `{"ok":true,"data":{"
 - `debug` ayarı üretimde **false** kalmalı.
 - SSL aktif olduktan sonra `public_html/.htaccess` içindeki `Strict-Transport-Security` satırının başındaki `#` işaretini kaldırın.
 - `app_key` değiştirilirse tüm oturumlar kapanır (sızıntı şüphesinde yapılacak ilk iş budur).
+
+## Günlük otomatik yedek
+
+cPanel → Cron Jobs → her gün 05:00 (komut):
+
+    php /home/KULLANICI/public_html/_app/backup.php
+
+- Yedekler `/home/KULLANICI/dnlstation-backups/` klasörüne `dnl-YYYYMMDD-HHMMSS.sql.gz` adıyla yazılır (izin 0600, web'den erişilemez).
+- Son 14 yedek tutulur, eskileri otomatik silinir.
+- Geri yükleme bu betikte yoktur; yedek dosyası MySQL'e elle aktarılır (ör. `zcat dosya.sql.gz | mysql -u KULLANICI -p VERITABANI`). Geri yüklemeden önce mevcut veritabanının yedeğini alın.
