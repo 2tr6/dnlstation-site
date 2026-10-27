@@ -16,7 +16,7 @@ SEO_LINKS = [
     ('/okey-salonu-programi/', 'Okey salonu programı'),
     ('/oyun-salonu-yonetim-sistemi/', 'Oyun salonu yönetim sistemi'),
 ]
-LEGAL_LINKS = [('/kvkk/', 'KVKK aydınlatma metni'), ('/gizlilik/', 'Gizlilik ve çerez politikası'), ('/kullanim-sartlari/', 'Kullanım şartları')]
+LEGAL_LINKS = [('/kvkk/', 'KVKK aydınlatma metni'), ('/gizlilik/', 'Gizlilik ve çerez politikası'), ('/kullanim-sartlari/', 'Kullanım şartları'), ('/mesafeli-satis/', 'Mesafeli satış sözleşmesi'), ('/iptal-iade/', 'İptal ve iade koşulları')]
 
 
 def e(s):
@@ -283,6 +283,13 @@ SEO = [
     },
 ]
 
+# Satıcı bilgileri. Yayından önce [YER TUTUCU] alanlarını gerçek şirket bilgileriyle değiştirin.
+SELLER = {
+    'unvan': '[ŞİRKET ÜNVANI – YATA Girişim / şirket adı]',
+    'vergi': '[VERGİ DAİRESİ / VERGİ NO]',
+    'adres': '[ŞİRKET ADRESİ]',
+}
+
 CONTACT = 'E-posta: <a href="mailto:support@dnlstation.com.tr">support@dnlstation.com.tr</a> · WhatsApp: <a href="https://wa.me/905377620708" target="_blank" rel="noopener">+90 537 762 07 08</a> · Instagram: <a href="https://www.instagram.com/dnlstation/" target="_blank" rel="noopener">@dnlstation</a>'
 
 LEGAL = [
@@ -329,6 +336,38 @@ LEGAL = [
         ('Sorumluluk', ['Hizmet’in kesintisiz ve hatasız çalışması için makul özen gösterilir; ancak bakım, altyapı arızası, internet kesintisi gibi durumlarda yaşanabilecek geçici aksaklıklardan ve Kullanıcı’nın hatalı veri girişinden doğan sonuçlardan DNL Station sorumlu tutulamaz. Hizmet’in sağladığı hesaplamalar işletmenin ticari kayıtlarının yerine geçmez; yasal defter ve belge yükümlülükleri Kullanıcı’ya aittir.']),
         ('Değişiklikler ve fesih', ['Bu şartlar gerektiğinde güncellenebilir; önemli değişiklikler panel duyurusu ile bildirilir. Kullanıcı üyeliğini dilediği zaman sonlandırabilir. Şartlara aykırılık halinde hesap askıya alınabilir veya sonlandırılabilir.']),
         ('Uygulanacak hukuk', ['Bu şartlar Türkiye Cumhuriyeti hukukuna tabidir. Uyuşmazlıklarda mevzuatın yetkili kıldığı mahkeme ve icra daireleri yetkilidir.']),
+        ('İletişim', [CONTACT]),
+    ]),
+    ('mesafeli-satis', 'Mesafeli Satış Sözleşmesi – DNL Station', 'Mesafeli satış sözleşmesi', 'DNL Station mesafeli satış sözleşmesi: taraflar, hizmetin konusu, bedel, ödeme, teslim ve cayma hakkı.', [
+        ('Taraflar', [
+            f'<b>Satıcı:</b> {SELLER["unvan"]}, vergi bilgisi: {SELLER["vergi"]}, adres: {SELLER["adres"]}. İletişim: {CONTACT}',
+            '<b>Alıcı:</b> DNL Station’a üye olan ve bu sözleşmeyi onaylayan kişi ya da işletme. Alıcının bilgileri üyelik formunda beyan edilir.',
+        ]),
+        ('Sözleşmenin konusu', ['İşbu sözleşme, Alıcı’nın DNL Station web uygulamasından seçtiği paketin (Başlangıç, Pro, Salon+ vb.) elektronik ortamda sunulan yazılım hizmetinin satışı ve kullanımına ilişkindir. Paket içerikleri ve fiyatları sitede ve “Paketim” sayfasında ilan edilir.']),
+        ('Hizmetin teslimi', ['Hizmet elektronik ortamda, ödemenin onaylanmasından veya deneme süresinin başlamasından itibaren panel üzerinden anında sunulur. Fiziksel bir teslimat yapılmaz.']),
+        ('Bedel ve ödeme', [
+            'Bedeller Türk Lirası olarak ve vergiler dahil gösterilir. Ödeme yöntemleri ve dönemler (aylık / yıllık) panelde belirtilir.',
+            'Ödeme onaylanmadan paket süresi tanımlanmaz. Deneme süresi ücretsizdir ve kart bilgisi istenmez.',
+        ]),
+        ('Cayma hakkı', ['Hizmet, elektronik ortamda anında ifa edilen ve tüketiciye anında teslim edilen hizmetler niteliğinde olduğundan, 6502 sayılı Tüketicinin Korunması Hakkında Kanun’un 15. maddesi ve Mesafeli Sözleşmeler Yönetmeliği’nin istisna hükümleri uyarınca cayma hakkı kapsamında değildir. Ancak hizmetin kullanılmaya başlanmadan önce cayılması ve ödemenin iadesi talebi ayrıca değerlendirilir. Ayrıntılar için <a href="/iptal-iade/">iptal ve iade koşullarına</a> bakın.']),
+        ('Sorumluluk ve fesih', ['Satıcı, hizmetin kesintisiz çalışması için makul özeni gösterir. Alıcı, hesabını ve şifrelerini korumakla yükümlüdür. Alıcı’nın sözleşme ve kullanım şartlarına aykırı kullanımı halinde Satıcı hesabı askıya alabilir.']),
+        ('Uyuşmazlık', ['Bu sözleşmeden doğan uyuşmazlıklarda, Alıcı’nın yerleşim yerindeki Tüketici Hakem Heyetleri ve Tüketici Mahkemeleri, mevzuatın tanıdığı ölçüde yetkilidir. Alıcı tüketici sıfatında değilse Satıcı’nın bulunduğu yer mahkemeleri yetkilidir.']),
+        ('Yürürlük', ['Alıcı, üyelik ve ödeme adımlarında bu sözleşmeyi onaylayarak elektronik ortamda kabul etmiş olur. Bu sözleşmenin bir örneği e-posta ile Alıcı’ya gönderilir ve panelde saklanır.']),
+    ]),
+    ('iptal-iade', 'İptal ve İade Koşulları – DNL Station', 'İptal ve iade koşulları', 'DNL Station abonelik iptali, ödeme iadesi ve deneme süresi kuralları.', [
+        ('Abonelik iptali', [
+            'Aboneliğinizi panelde “Paketim” sayfasından ya da destek kanallarımızdan (WhatsApp, e-posta) istediğiniz zaman sonlandırabilirsiniz.',
+            'İptal, ödediğiniz dönemin sonunda geçerli olur; ödenen dönem sonuna kadar hizmeti kullanmaya devam edersiniz. Yeni dönem için otomatik ücret alınmaz.',
+        ]),
+        ('Dönem içi iade', ['Ödenmiş ücretli dönem içinde iptal durumunda, kullanılmayan süre için kısmi iade yapılmaz. Bu koşul, 6502 sayılı Kanun’dan doğan haklarınız saklı kalmak kaydıyla geçerlidir.']),
+        ('İade yapılan durumlar', [[
+            'Çift tahsilat veya teknik nedenle hatalı çekilen ödemeler,',
+            'Ödeme onaylanmış ancak paket hiç tanımlanamamışsa,',
+            'Hizmetin sunulamadığı, Satıcı kaynaklı uzun süreli kesintilerde ve bu durumun makul bir süre içinde giderilmemesi halinde kalan süre için,',
+            'Ödemeden sonra hizmet kullanılmaya başlanmadan yapılan ve haklı bulunan iptal talepleri.']]),
+        ('İade süreci', ['İade talepleri destek kanallarımız üzerinden iletilir. Haklı bulunan iadeler, ödemenin yapıldığı yönteme göre, mevzuatta öngörülen süre içinde (en geç 14 gün) yapılır. Kart iadelerinde bankanızın işlem süresi ayrıca geçerli olabilir.']),
+        ('Deneme süresi', ['Deneme süresi ücretsizdir ve kart bilgisi istenmez; bu nedenle deneme süresi için iade söz konusu değildir. Deneme süresi bittiğinde, paket seçilmediği sürece kayıtlar korunur ve yeni işlem yapılamaz.']),
+        ('Ömür boyu üyelik', ['Ömür boyu üyelikler, yazılı olarak kabul edilen özel koşullara tabidir. Bu koşullar işletmeye ayrıca bildirilir.']),
         ('İletişim', [CONTACT]),
     ]),
 ]

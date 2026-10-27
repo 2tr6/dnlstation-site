@@ -47,6 +47,10 @@ final class AuthController
         $business = $in->str('business', 2, 120, true, 'İşletme adı');
         $phone = $in->phone('phone');
         $email = $in->email('email');
+        if (Config::get('sms.signup_otp', false) === true) {
+            // SMS doğrulaması açıksa, telefon numarası OTP ile doğrulanmış olmalı
+            \Dnl\Services\Otp::assertProof($phone, 'signup', (string)(Http::json()['phone_proof'] ?? ''));
+        }
         $password = $in->raw('password', 1, 128, 'Şifre');
         $confirm = $in->raw('password_confirm', 1, 128, 'Şifre tekrarı');
         $plan = $in->enum('plan', array_keys(Subscription::PLANS), 'pro', 'Paket');

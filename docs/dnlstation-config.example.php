@@ -31,6 +31,16 @@ return [
         'from_name' => 'DNL Station',
     ],
 
+    // SMS (NetGSM). Kullanıma hazır; NetGSM hesabınızı bağlayınca provider 'netgsm' yapın.
+    // header: NetGSM'de onaylı mesaj başlığınız. signup_otp true ise kayıtta SMS doğrulaması zorunlu olur.
+    'sms' => [
+        'provider' => 'off',          // off | netgsm
+        'usercode' => 'DEGISTIR',     // NetGSM kullanıcı kodu
+        'password' => 'DEGISTIR',     // NetGSM API şifresi
+        'header' => 'DEGISTIR',       // onaylı mesaj başlığı (ör. DNLSTATION)
+        'signup_otp' => false,
+    ],
+
     // Yayından sonra şema güncellemesi için gizli anahtar (en az 32 karakter).
     // Aynı değeri GitHub > Settings > Secrets > Actions altında MIGRATE_TOKEN olarak da kaydedin.
     'migrate_token' => 'DEGISTIR',

@@ -19,6 +19,8 @@ $r->add('GET', '/auth/csrf', fn() => C\AuthController::csrf());
 $r->add('POST', '/auth/register', fn() => C\AuthController::register());
 $r->add('POST', '/auth/login', fn() => C\AuthController::login());
 $r->add('POST', '/auth/logout', fn() => C\AuthController::logout());
+$r->add('POST', '/auth/otp/send', fn() => C\OtpController::send());
+$r->add('POST', '/auth/otp/verify', fn() => C\OtpController::verify());
 
 // Ana yönetici — ayrı oturum, iki adımlı giriş. Yönetici hesabı yalnızca sunucuda (CLI) oluşturulur.
 $ad = ['admin' => true];
@@ -59,6 +61,8 @@ $r->add('POST', '/admin/system/gc', fn() => C\AdminSystemController::gc(), $ad);
 $r->add('POST', '/admin/system/maintenance', fn() => C\AdminSystemController::maintenance(), $ad);
 $r->add('POST', '/admin/system/clear-errors', fn() => C\AdminSystemController::clearErrors(), $ad);
 $r->add('GET', '/admin/emails', fn() => C\AdminSystemController::emails(), $ad);
+$r->add('GET', '/admin/sms', fn() => C\AdminSystemController::sms(), $ad);
+$r->add('POST', '/admin/system/test-sms', fn() => C\AdminSystemController::testSms(), $ad);
 $r->add('GET', '/admin/security', fn() => C\AdminSystemController::security(), $ad);
 $r->add('GET', '/admin/activity', fn() => C\AdminSystemController::activity(), $ad);
 $r->add('PUT', '/admin/settings', fn() => C\AdminController::saveSettings(), $ad);

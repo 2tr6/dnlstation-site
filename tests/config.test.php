@@ -7,5 +7,6 @@ return [
     'mail' => ['transport' => 'file', 'from' => 'noreply@dnlstation.com.tr', 'from_name' => 'DNL Station'],
     'migrate_token' => 'test-migrate-token-0123456789abcdef0123456789',
     'log_dir' => __DIR__ . '/tmp/logs',
+    'sms' => ['provider' => 'file', 'signup_otp' => false],
     'debug' => true,
 ];

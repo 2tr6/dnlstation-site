@@ -37,6 +37,8 @@ final class Config
             'db' => ['driver' => 'mysql', 'host' => 'localhost', 'port' => 3306, 'name' => '', 'user' => '', 'pass' => '', 'path' => ''],
             'mail' => ['from' => 'noreply@dnlstation.com.tr', 'from_name' => 'DNL Station'],
             'migrate_token' => '',
+            // SMS (NetGSM). provider: off | netgsm. signup_otp: true ise kayıtta SMS doğrulaması zorunlu olur.
+            'sms' => ['provider' => 'off', 'usercode' => '', 'password' => '', 'header' => '', 'signup_otp' => false],
             'require_email_verification' => false,
             'force_secure_cookies' => true,
             'log_dir' => DNL_ROOT . '/storage/logs',

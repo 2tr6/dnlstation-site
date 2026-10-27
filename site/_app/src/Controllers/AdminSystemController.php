@@ -12,6 +12,7 @@ use Dnl\Core\Http;
 use Dnl\Core\HttpError;
 use Dnl\Core\Input;
 use Dnl\Core\Mailer;
+use Dnl\Core\Sms;
 use Dnl\Core\Migrator;
 use Dnl\Services\SystemSettings;
 
@@ -103,6 +104,33 @@ final class AdminSystemController
         return $a;
     }
 
+    public static function sms(): array
+    {
+        AdminAuth::require();
+        $items = Db::all('SELECT id, to_phone, kind, status, error, business_id, created_at FROM sms_log ORDER BY id DESC LIMIT 100');
+        $stats = Db::one("SELECT SUM(CASE WHEN status = 'sent' AND created_at >= :d THEN 1 ELSE 0 END) AS sent_24h,
+            SUM(CASE WHEN status = 'failed' AND created_at >= :d THEN 1 ELSE 0 END) AS failed_24h FROM sms_log", ['d' => gmdate('Y-m-d H:i:s', time() - 86400)]) ?? [];
+        return [
+            'provider' => Sms::provider(), 'configured' => Sms::configured(), 'signup_otp' => Config::get('sms.signup_otp', false) === true,
+            'stats' => ['sent_24h' => (int)($stats['sent_24h'] ?? 0), 'failed_24h' => (int)($stats['failed_24h'] ?? 0)],
+            'items' => array_map(static fn($r) => ['id' => (int)$r['id'], 'to' => $r['to_phone'], 'kind' => $r['kind'], 'status' => $r['status'], 'error' => $r['error'], 'business_id' => $r['business_id'] ? (int)$r['business_id'] : null, 'at' => Db::iso($r['created_at'])], $items),
+        ];
+    }
+
+    public static function testSms(): array
+    {
+        $aid = AdminAuth::id();
+        $in = new Input(Http::json());
+        $to = $in->phone('to');
+        $in->check();
+        $ok = Sms::send($to, 'DNL Station SMS testi. Bu mesajı aldıysanız SMS altyapısı çalışıyor.', 'test');
+        AdminAuth::log($aid, 'system.test_sms', 'system', null, ['ok' => $ok]);
+        if (!$ok) {
+            throw new HttpError(502, 'SMS gönderilemedi: ' . (Sms::$lastError ?: 'bilinmeyen hata'), 'sms_failed');
+        }
+        return ['ok' => true, 'message' => "$to numarasına test SMS'i gönderildi."];
+    }
+
     public static function status(): array
     {
         AdminAuth::require();
@@ -126,6 +154,8 @@ final class AdminSystemController
         $c('HTTPS', Http::isHttps(), Http::isHttps() ? 'Bağlantı şifreli' : 'Bu istek HTTPS değil', Http::isHttps() ? 'ok' : 'warn');
         $transport = (string)Config::get('mail.transport', 'mail');
         $c('E-posta gönderimi', $transport === 'smtp', $transport === 'smtp' ? 'SMTP · ' . (((array)Config::get('mail.smtp', []))['host'] ?? '') : "Taşıyıcı: $transport", $transport === 'smtp' ? 'ok' : 'warn');
+        $smsOn = Sms::configured();
+        $c('SMS gönderimi', $smsOn, $smsOn ? 'NetGSM · ' . Sms::provider() : (Sms::provider() === 'off' ? 'Kapalı (sms ayarları girilmedi)' : 'Ayarlar eksik'), $smsOn ? 'ok' : 'warn');
         $logDir = (string)Config::get('log_dir', DNL_ROOT . '/storage/logs');
         $w = is_dir($logDir) ? is_writable($logDir) : is_writable(dirname($logDir));
         $c('Günlük klasörü yazılabilir', $w, $w ? 'Evet' : 'Hayır');
@@ -133,7 +163,7 @@ final class AdminSystemController
         $c('Boş disk alanı', $free === false || $free > 500 * 1024 * 1024, $free === false ? 'Okunamadı' : round($free / 1073741824, 2) . ' GB', $free === false ? 'warn' : '');
         $c('Bakım modu', !SystemSettings::get('maintenance'), SystemSettings::get('maintenance') ? 'AÇIK' : 'Kapalı', SystemSettings::get('maintenance') ? 'warn' : 'ok');
         $tables = [];
-        foreach (['businesses', 'users', 'play_sessions', 'tickets', 'payments', 'products', 'customers', 'audit_logs', 'email_log', 'security_events', 'rate_limits', 'auth_tokens'] as $t) {
+        foreach (['businesses', 'users', 'play_sessions', 'tickets', 'payments', 'products', 'customers', 'audit_logs', 'email_log', 'sms_log', 'security_events', 'rate_limits', 'auth_tokens'] as $t) {
             $tables[] = ['table' => $t, 'rows' => (int)Db::value("SELECT COUNT(*) FROM $t")];
         }
         return [

@@ -14,6 +14,12 @@ cPanel → Terminal → `bash public_html/_app/eposta.sh`
 - Araç bağlantı yollarını dener, test e-postası gönderir, çalışan ayarı ayar dosyasına yazar.
 - Gmail'de spam'e düşmemesi için: cPanel → **E-posta Teslim Edilebilirliği** → dnlstation.com.tr için SPF/DKIM "Geçerli" olmalı (değilse **Onar**).
 
+## SMS (NetGSM) — isteğe bağlı
+- Ayar dosyasında `sms` bölümünü doldurun: `provider` → `netgsm`, `usercode`, `password` (NetGSM API şifresi), `header` (onaylı başlık).
+- Şu an `provider` = `off`; bu durumda SMS gönderilmez, kayıtlar "skipped" olarak görünür. Sistem bozulmaz.
+- Kayıt sırasında SMS doğrulaması için `signup_otp` = `true` yapın. Bu, ön yüzdeki OTP adımı eklenene kadar kayıtları durduracağı için son adımda açın.
+- Yönetici panelinde **Sistem** sayfasında "SMS gönderimi" kontrolü durumu gösterir.
+
 ## Ana yönetici hesabı
 cPanel → Terminal → `bash public_html/_app/yonetici.sh`
 - **1** yeni yönetici, **2** şifre sıfırlama, **3** Authenticator sıfırlama (telefon kaybolursa).
