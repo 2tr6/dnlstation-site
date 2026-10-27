@@ -63,6 +63,13 @@ const ICONS = {
   edit: 'M12 20h9M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4z',
   copy: 'M9 9h13v13H9zM5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1',
   refresh: 'M23 4v6h-6M1 20v-6h6M3.5 9a9 9 0 0 1 14.8-3.4L23 10M1 14l4.7 4.4A9 9 0 0 0 20.5 15',
+  mail: 'M4 4h16v16H4zM4 6l8 7 8-7',
+  shield: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
+  activity: 'M22 12h-4l-3 9L9 3l-3 9H2',
+  server: 'M3 4h18v6H3zM3 14h18v6H3zM7 7h.01M7 17h.01',
+  calendar: 'M3 5h18v16H3zM16 3v4M8 3v4M3 10h18',
+  users: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8',
+  receipt: 'M5 2h14v20l-3-2-2 2-2-2-2 2-2-2-3 2zM9 7h6M9 11h6M9 15h4',
   eye: 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
   ball: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z',
 };
@@ -111,7 +118,7 @@ export function localDate(d = new Date()) {
   return p; // YYYY-MM-DD
 }
 export const KIND_LABEL = { playstation: 'PlayStation', bilardo: 'Bilardo', okey: 'Okey', langirt: 'Langırt', 'masa-tenisi': 'Masa Tenisi', diger: 'Diğer' };
-export const METHOD_LABEL = { cash: 'Nakit', card: 'Kart', other: 'Diğer' };
+export const METHOD_LABEL = { cash: 'Nakit', card: 'Kart', other: 'Diğer', credit: 'Veresiye' };
 export const ROLE_LABEL = { owner: 'İşletme sahibi', manager: 'Müdür', staff: 'Personel' };
 
 /* ---------- API ---------- */

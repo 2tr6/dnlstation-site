@@ -45,9 +45,18 @@ final class Shifts
     public static function totals(int $bid, array $shift): array
     {
         $rows = Db::all('SELECT method, COALESCE(SUM(amount_cents), 0) AS total, COUNT(*) AS cnt FROM payments WHERE business_id = :b AND shift_id = :s AND voided_at IS NULL GROUP BY method', ['b' => $bid, 's' => $shift['id']]);
-        $by = ['cash' => 0, 'card' => 0, 'other' => 0];
+        $by = ['cash' => 0, 'card' => 0, 'other' => 0, 'credit' => 0];
         foreach ($rows as $r) {
             $by[$r['method']] = (int)$r['total'];
+        }
+        // Veresiye tahsilatları (kasaya giren) ve kasadan ödenen giderler
+        $col = ['cash' => 0, 'card' => 0, 'other' => 0];
+        foreach (Db::all("SELECT method, COALESCE(SUM(-amount_cents),0) AS s FROM customer_moves WHERE business_id = :b AND shift_id = :s AND kind = 'collection' GROUP BY method", ['b' => $bid, 's' => $shift['id']]) as $r) {
+            $col[$r['method']] = (int)$r['s'];
+        }
+        $exp = ['cash' => 0, 'card' => 0, 'other' => 0];
+        foreach (Db::all('SELECT method, COALESCE(SUM(amount_cents),0) AS s FROM expenses WHERE business_id = :b AND shift_id = :s AND voided_at IS NULL GROUP BY method', ['b' => $bid, 's' => $shift['id']]) as $r) {
+            $exp[$r['method']] = (int)$r['s'];
         }
         $t = Db::one("SELECT COUNT(*) AS cnt, COALESCE(SUM(total_cents),0) AS total, COALESCE(SUM(discount_cents),0) AS disc, COALESCE(SUM(game_cents),0) AS game, COALESCE(SUM(items_cents),0) AS items FROM tickets WHERE business_id = :b AND shift_id = :s AND status = 'paid'", ['b' => $bid, 's' => $shift['id']]);
         $voids = (int)Db::value("SELECT COUNT(*) FROM tickets WHERE business_id = :b AND status = 'void' AND closed_at >= :o AND closed_at <= :c", ['b' => $bid, 'o' => $shift['opened_at'], 'c' => $shift['closed_at'] ?? '9999-12-31 23:59:59']);
@@ -61,13 +70,18 @@ final class Shifts
             'cash_cents' => $by['cash'],
             'card_cents' => $by['card'],
             'other_cents' => $by['other'],
+            'credit_cents' => $by['credit'],
+            'collections_cents' => array_sum($col),
+            'collections_cash_cents' => $col['cash'],
+            'expense_cents' => array_sum($exp),
+            'expense_cash_cents' => $exp['cash'],
             'revenue_cents' => $by['cash'] + $by['card'] + $by['other'],
             'tickets' => (int)$t['cnt'],
             'game_cents' => (int)$t['game'],
             'items_cents' => (int)$t['items'],
             'discount_cents' => (int)$t['disc'],
             'voids' => $voids,
-            'expected_cash_cents' => (int)$shift['opening_cash_cents'] + $by['cash'],
+            'expected_cash_cents' => (int)$shift['opening_cash_cents'] + $by['cash'] + $col['cash'] - $exp['cash'],
             'counted_cash_cents' => $shift['counted_cash_cents'] !== null ? (int)$shift['counted_cash_cents'] : null,
             'note' => $shift['note'],
         ];
@@ -106,7 +120,20 @@ final class Shifts
         });
         Audit::log($bid, $uid, 'shift.close', 'shift', $sid, ['expected' => $tot['expected_cash_cents'], 'counted' => $counted]);
         $shift = Db::one('SELECT * FROM shifts WHERE id = :id', ['id' => $sid]);
-        return self::totals($bid, $shift);
+        $z = self::totals($bid, $shift);
+        // İşletme sahibine Z raporu e-postası (ayardan kapatılabilir; gönderim hatası kapanışı engellemez)
+        $settings = json_decode((string)($biz['settings'] ?? ''), true) ?: [];
+        if (($settings['email_z_report'] ?? true) !== false) {
+            $owner = Db::one("SELECT name, email FROM users WHERE business_id = :b AND role = 'owner' AND is_active = 1 LIMIT 1", ['b' => $bid]);
+            if ($owner) {
+                try {
+                    Emails::zReport($owner['email'], $owner['name'], (string)$biz['name'], $z, $bid);
+                } catch (\Throwable $e) {
+                    \Dnl\Core\Log::error($e, 'z-mail');
+                }
+            }
+        }
+        return $z;
     }
 
     public static function list(int $bid, int $limit = 30): array

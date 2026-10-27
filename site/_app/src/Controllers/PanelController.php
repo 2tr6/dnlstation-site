@@ -21,7 +21,7 @@ final class PanelController
     public static function dayStartUtc(array $biz, int $daysAgo = 0): string
     {
         $tz = new \DateTimeZone((string)$biz['timezone']);
-        $d = (new \DateTimeImmutable('now', $tz))->setTime(0, 0)->modify("-$daysAgo day");
+        $d = (new \DateTimeImmutable('now', $tz))->setTime(0, 0)->modify(($daysAgo >= 0 ? '-' : '+') . abs($daysAgo) . ' day');
         return $d->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s');
     }
 
@@ -40,10 +40,11 @@ final class PanelController
             $s['p'] = json_decode((string)$s['pricing'], true) ?: [];
             $sessions[(int)$s['id']] = Games::summary($s, $now);
         }
+        $resv = \Dnl\Services\Reservations::upcomingByTable($bid);
         $outTables = [];
         foreach ($tables as $t) {
             $sid = $t['active_session_id'] !== null ? (int)$t['active_session_id'] : null;
-            $outTables[] = ['id' => (int)$t['id'], 'name' => $t['name'], 'type_id' => (int)$t['table_type_id'], 'session' => $sid !== null ? ($sessions[$sid] ?? null) : null];
+            $outTables[] = ['id' => (int)$t['id'], 'name' => $t['name'], 'type_id' => (int)$t['table_type_id'], 'session' => $sid !== null ? ($sessions[$sid] ?? null) : null, 'reservation' => $resv[(int)$t['id']] ?? null];
         }
         $today = self::dayStartUtc($b);
         $rev = (int)Db::value("SELECT COALESCE(SUM(p.amount_cents), 0) FROM payments p WHERE p.business_id = :b AND p.voided_at IS NULL AND p.created_at >= :d", ['b' => $bid, 'd' => $today]);
@@ -60,6 +61,7 @@ final class PanelController
                 'total_tables' => count($outTables),
                 'open_amount_cents' => $live,
                 'low_stock' => $low,
+                'reservations_today' => (int)Db::value("SELECT COUNT(*) FROM reservations WHERE business_id = :b AND status = 'booked' AND starts_at >= :f AND starts_at < :t", ['b' => $bid, 'f' => $today, 't' => self::dayStartUtc($b, -1)]),
             ],
             'shift' => $shift ? ['id' => (int)$shift['id'], 'opened_at' => Db::iso($shift['opened_at']), 'opened_by' => $shift['opened_by']] : null,
             'setup_done' => (int)Db::value('SELECT setup_done FROM businesses WHERE id = :b', ['b' => $bid]) === 1,

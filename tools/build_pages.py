@@ -60,7 +60,7 @@ def footer():
       <div><h3>Çözümler</h3>{seo}</div>
       <div><h3>Hesap</h3><a href="/giris/">Giriş Yap</a><a href="/uye-ol/">Üye Ol</a></div>
       <div><h3>Yasal</h3>{legal}</div>
-      <div><h3>İletişim</h3><a href="https://www.instagram.com/dnlstation/" target="_blank" rel="noopener">@dnlstation</a></div>
+      <div><h3>Destek</h3><a href="https://wa.me/905377620708" target="_blank" rel="noopener">WhatsApp: +90 537 762 07 08</a><a href="mailto:support@dnlstation.com.tr">support@dnlstation.com.tr</a><a href="https://www.instagram.com/dnlstation/" target="_blank" rel="noopener">Instagram: @dnlstation</a><a href="mailto:info@yatagirisim.com">Yazılım ve bilgi: info@yatagirisim.com</a></div>
     </div>
   </div>
   <p class="copy">© 2026 DNL Station · Bir YataGirişim Markasıdır.</p>
@@ -277,13 +277,13 @@ SEO = [
             ('Oyun salonu yönetim sistemi hangi salonlar için uygun?', 'PlayStation, bilardo, okey, langırt, masa tenisi, dart ve VR gibi masa ya da alan bazlı çalışan salonlar için uygundur. Bilgisayar (internet kafe) salonları için uygun değildir.'),
             ('Birden fazla salon türünü aynı anda yönetebilir miyim?', 'Evet. Her salon türü için ayrı tarife tanımlanır; tüm masalar aynı ekranda ve aynı kasada yönetilir.'),
             ('Verilerimi dışa aktarabilir miyim?', 'Evet. Raporlar bölümünden seçtiğiniz tarih aralığındaki tüm hesapları Excel’de açılabilen CSV dosyası olarak indirebilirsiniz.'),
-            ('Destek alabilir miyim?', 'Evet. Instagram ve WhatsApp üzerinden destek verilir; Salon+ paketinde öncelikli destek ve birebir kurulum yardımı bulunur.'),
+            ('Destek alabilir miyim?', 'Evet. WhatsApp (+90 537 762 07 08), e-posta (support@dnlstation.com.tr) ve Instagram üzerinden destek verilir; Salon+ paketinde öncelikli destek ve birebir kurulum yardımı bulunur.'),
         ],
         'cta': 'Salonunuzu profesyonel bir sistemle yönetin.',
     },
 ]
 
-CONTACT = 'Instagram: <a href="https://www.instagram.com/dnlstation/" target="_blank" rel="noopener">@dnlstation</a> · E-posta: <a href="mailto:destek@dnlstation.com.tr">destek@dnlstation.com.tr</a>'
+CONTACT = 'E-posta: <a href="mailto:support@dnlstation.com.tr">support@dnlstation.com.tr</a> · WhatsApp: <a href="https://wa.me/905377620708" target="_blank" rel="noopener">+90 537 762 07 08</a> · Instagram: <a href="https://www.instagram.com/dnlstation/" target="_blank" rel="noopener">@dnlstation</a>'
 
 LEGAL = [
     ('kvkk', 'KVKK Aydınlatma Metni – DNL Station', 'KVKK aydınlatma metni', 'DNL Station kişisel verilerin işlenmesine ilişkin 6698 sayılı KVKK kapsamında aydınlatma metni.', [

@@ -1,5 +1,5 @@
 // Raporlar: tarih aralığı, özet, günlük grafik, kırılımlar, CSV
-import { h, clear, icon, get, fail, money, money0, localDate, empty, seg, fill, add } from './core.js?v=1';
+import { h, clear, icon, get, fail, money, money0, localDate, empty, seg, fill, add, can } from './core.js?v=1';
 
 function addDays(ymd, n) {
   const [y, m, d] = ymd.split('-').map(Number);
@@ -96,6 +96,10 @@ export function reportsView(ctx) {
           h('span', null, h('i', { class: 'cash' }), `Nakit ${money(mt.cash)} (${Math.round(mt.cash * 100 / all)}%)`),
           h('span', null, h('i', { class: 'card' }), `Kart ${money(mt.card)} (${Math.round(mt.card * 100 / all)}%)`),
           mt.other ? h('span', null, h('i', { class: 'other' }), `Diğer ${money(mt.other)}`) : null)),
+      r.finance ? h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', null, 'Kâr ve gider'), can('expenses.manage') ? h('a', { class: 'btn btn-ghost sm', href: '#/giderler' }, 'Giderler') : null),
+        h('div', { class: 'kpis' }, k('Satış (ciro)', money(t.revenue)), k('Ürün maliyeti', '−' + money(r.finance.product_cost_cents)), k('Giderler', '−' + money(r.finance.expense_cents)), k('Tahmini net', money(r.finance.net_cents)),
+          k('Veresiye satış', money(r.finance.credit_sales_cents)), k('Veresiye tahsilatı', money(r.finance.collections_cents))),
+        h('p', { class: 'hint' }, 'Ürün maliyeti yalnızca alış fiyatı girilmiş ürünler için hesaplanır. Net = ciro − ürün maliyeti − giderler.')) : null,
       heatmap(r.heatmap),
       h('div', { class: 'grid2' },
         breakdown('Oyun türüne göre', r.by_type, [{ label: 'Tür', get: (x) => x.name }, { label: 'Oturum', num: 1, get: (x) => String(x.count) }, { label: 'Oyun', num: 1, get: (x) => money(x.game_cents) }, { label: 'Ürün', num: 1, get: (x) => money(x.items_cents) }]),

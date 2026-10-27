@@ -24,6 +24,7 @@ final class SystemController
                 RateLimiter::enforce('migrate:' . Http::ip(), 10, 3600);
             } catch (\PDOException) {
             }
+            \Dnl\Core\SecurityLog::add('migrate_denied');
             throw new HttpError(403, 'Yetkisiz.', 'forbidden');
         }
         return ['applied' => Migrator::run()];

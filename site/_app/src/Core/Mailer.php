@@ -12,10 +12,24 @@ defined('DNL_APP') || exit;
 final class Mailer
 {
     /** Markalı HTML + düz metin e-posta (bkz. MailTemplate) */
-    public static function sendTemplate(string $to, string $subject, array $m): bool
+    public static function sendTemplate(string $to, string $subject, array $m, string $kind = '', ?int $businessId = null): bool
     {
         [$text, $html] = MailTemplate::render($m);
-        return self::send($to, $subject, $text, $html);
+        return self::send($to, $subject, $text, $html, $kind, $businessId);
+    }
+
+    /** Her gönderim e-posta kaydına yazılır (yönetici panelinde görünür) */
+    private static function record(string $to, string $subject, string $kind, ?int $businessId, bool $ok): void
+    {
+        try {
+            Db::insert('email_log', [
+                'to_email' => mb_substr($to, 0, 190), 'subject' => mb_substr($subject, 0, 200), 'kind' => $kind,
+                'status' => $ok ? 'sent' : 'failed', 'error' => $ok ? '' : mb_substr(self::$lastError ?: 'Gönderilemedi', 0, 300),
+                'business_id' => $businessId, 'created_at' => Db::now(),
+            ]);
+        } catch (\Throwable $e) {
+            // Tablo yoksa (kurulum öncesi) kayıt atlanır
+        }
     }
 
     /** MIME gövdesi: yalnız metin ya da metin+HTML (multipart/alternative), base64 */
@@ -32,7 +46,15 @@ final class Mailer
         return ['Content-Type: multipart/alternative; boundary="' . $bd . '"', null, $body];
     }
 
-    public static function send(string $to, string $subject, string $body, ?string $html = null): bool
+    public static function send(string $to, string $subject, string $body, ?string $html = null, string $kind = '', ?int $businessId = null): bool
+    {
+        self::$lastError = '';
+        $ok = self::deliver($to, $subject, $body, $html);
+        self::record($to, $subject, $kind, $businessId, $ok);
+        return $ok;
+    }
+
+    private static function deliver(string $to, string $subject, string $body, ?string $html): bool
     {
         $to = str_replace(["\r", "\n"], '', $to);
         if (filter_var($to, FILTER_VALIDATE_EMAIL) === false) {
@@ -66,7 +88,11 @@ final class Mailer
             return self::smtp((array)Config::get('mail.smtp', []), $from, $fromName, $to, $subjectEnc, $body, $html);
         }
         try {
-            return mail($to, $subjectEnc, $mimeBody, implode("\r\n", $headers), '-f' . $from);
+            $ok = mail($to, $subjectEnc, $mimeBody, implode("\r\n", $headers), '-f' . $from);
+            if (!$ok) {
+                self::$lastError = 'PHP mail() başarısız';
+            }
+            return $ok;
         } catch (\Throwable $e) {
             Log::error($e, 'mail');
             return false;

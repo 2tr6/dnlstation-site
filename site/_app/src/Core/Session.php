@@ -78,6 +78,7 @@ final class Session
     {
         $real = $_SESSION['csrf'] ?? '';
         if (!is_string($token) || $token === '' || !is_string($real) || $real === '' || !hash_equals($real, $token)) {
+            SecurityLog::add('csrf_failed', '', null, (string)parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH));
             throw new HttpError(419, 'Oturum güvenlik anahtarı geçersiz. Sayfayı yenileyip tekrar deneyin.', 'csrf');
         }
     }

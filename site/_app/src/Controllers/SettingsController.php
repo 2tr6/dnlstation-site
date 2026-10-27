@@ -19,7 +19,7 @@ final class SettingsController
 {
     private static function settings(array $b): array
     {
-        return (json_decode((string)($b['settings'] ?? ''), true) ?: []) + ['show_prices_on_display' => true, 'show_free_on_display' => true, 'warn_minutes' => 5, 'staff_can_discount' => false, 'types' => []];
+        return (json_decode((string)($b['settings'] ?? ''), true) ?: []) + ['show_prices_on_display' => true, 'show_free_on_display' => true, 'warn_minutes' => 5, 'staff_can_discount' => false, 'email_z_report' => true, 'types' => []];
     }
 
     public static function show(): array
@@ -30,6 +30,7 @@ final class SettingsController
             'name' => $b['name'], 'phone' => $b['phone'],
             'warn_minutes' => (int)$s['warn_minutes'], 'staff_can_discount' => (bool)$s['staff_can_discount'],
             'show_prices_on_display' => (bool)$s['show_prices_on_display'], 'show_free_on_display' => (bool)$s['show_free_on_display'],
+            'email_z_report' => (bool)$s['email_z_report'],
             'display_enabled' => $b['display_token_hash'] !== null,
         ];
     }
@@ -45,6 +46,7 @@ final class SettingsController
         $s['staff_can_discount'] = $in->bool('staff_can_discount');
         $s['show_prices_on_display'] = $in->bool('show_prices_on_display', true);
         $s['show_free_on_display'] = $in->bool('show_free_on_display', true);
+        $s['email_z_report'] = $in->bool('email_z_report', true);
         $s['warn_minutes'] = (int)$warn;
         $in->check();
         Db::exec('UPDATE businesses SET name = :n, phone = :p, settings = :s, updated_at = :u WHERE id = :b', ['n' => $name, 'p' => $phone, 's' => json_encode($s, JSON_UNESCAPED_UNICODE), 'u' => Db::now(), 'b' => $b['id']]);
@@ -52,7 +54,7 @@ final class SettingsController
         $b = Db::one('SELECT * FROM businesses WHERE id = :b', ['b' => $b['id']]);
         $s2 = self::settings($b);
         return ['name' => $b['name'], 'phone' => $b['phone'], 'warn_minutes' => (int)$s2['warn_minutes'], 'staff_can_discount' => (bool)$s2['staff_can_discount'],
-            'show_prices_on_display' => (bool)$s2['show_prices_on_display'], 'show_free_on_display' => (bool)$s2['show_free_on_display'], 'display_enabled' => $b['display_token_hash'] !== null];
+            'show_prices_on_display' => (bool)$s2['show_prices_on_display'], 'show_free_on_display' => (bool)$s2['show_free_on_display'], 'email_z_report' => (bool)$s2['email_z_report'], 'display_enabled' => $b['display_token_hash'] !== null];
     }
 
     /** Müşteri ekranı bağlantısını yeniler (eski bağlantı geçersiz olur). Anahtar yalnızca bir kez döner. */
@@ -87,6 +89,7 @@ final class SettingsController
         $b = Db::one('SELECT * FROM businesses WHERE display_token_hash = :h', ['h' => hash('sha256', $key)]);
         if (!$b) {
             RateLimiter::hit('display-bad:' . Http::ip(), 30, 600);
+            \Dnl\Core\SecurityLog::add('display_bad_key');
             if (RateLimiter::blocked('display-bad:' . Http::ip(), 30)) {
                 throw new HttpError(429, 'Çok fazla deneme.', 'rate_limited');
             }

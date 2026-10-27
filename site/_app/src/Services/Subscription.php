@@ -21,12 +21,18 @@ final class Subscription
         if ($b === null) {
             return false;
         }
+        if ((int)($b['lifetime'] ?? 0) === 1) {
+            return true;
+        }
         $now = Db::now();
         return $b['trial_ends_at'] > $now || ($b['paid_until'] !== null && $b['paid_until'] > $now);
     }
 
     public static function status(array $b): array
     {
+        if ((int)($b['lifetime'] ?? 0) === 1) {
+            return ['plan' => $b['plan'], 'plan_name' => self::PLANS[$b['plan']]['name'] ?? $b['plan'], 'period' => $b['billing_period'], 'state' => 'lifetime', 'until' => null, 'days_left' => 99999, 'lifetime' => true];
+        }
         $now = Db::now();
         $paid = $b['paid_until'] !== null && $b['paid_until'] > $now;
         $trial = !$paid && $b['trial_ends_at'] > $now;
@@ -44,6 +50,10 @@ final class Subscription
 
     public static function limit(array $b, string $key): int
     {
+        $ov = $b[$key . '_override'] ?? null;
+        if ($ov !== null && $ov !== '') {
+            return (int)$ov;
+        }
         return (int)(self::PLANS[$b['plan']][$key] ?? self::PLANS['pro'][$key]);
     }
 }

@@ -69,14 +69,15 @@ function bizTab(pane, ctx) {
       field('Süre uyarısı (dakika)', inp('warn_minutes', { inputmode: 'numeric', class: 'inp mono', value: String(s.warn_minutes) }), 'Sabit süreli masalarda bitişe bu kadar kala sesli uyarı verilir. 0 = kapalı.'),
       toggle('staff_can_discount', 'Personel indirim yapabilsin', s.staff_can_discount),
       toggle('show_prices_on_display', 'Müşteri ekranında tutarları göster', s.show_prices_on_display),
-      toggle('show_free_on_display', 'Müşteri ekranında boş masaları göster', s.show_free_on_display));
+      toggle('show_free_on_display', 'Müşteri ekranında boş masaları göster', s.show_free_on_display),
+      toggle('email_z_report', 'Kasa kapanınca Z raporunu e-postayla gönder', s.email_z_report));
     const save = h('button', { class: 'btn btn-primary', type: 'submit' }, 'Kaydet');
     add(f, save);
     add(pane, h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', null, 'İşletme bilgileri')), f));
     f.addEventListener('submit', (ev) => { ev.preventDefault(); busy(save, async () => {
       const q = (n) => f.querySelector(`[name="${n}"]`);
       try {
-        await put('/settings', { name: q('name').value, phone: q('phone').value, warn_minutes: parseInt(q('warn_minutes').value, 10) || 0, staff_can_discount: q('staff_can_discount').checked, show_prices_on_display: q('show_prices_on_display').checked, show_free_on_display: q('show_free_on_display').checked });
+        await put('/settings', { name: q('name').value, phone: q('phone').value, warn_minutes: parseInt(q('warn_minutes').value, 10) || 0, staff_can_discount: q('staff_can_discount').checked, show_prices_on_display: q('show_prices_on_display').checked, show_free_on_display: q('show_free_on_display').checked, email_z_report: q('email_z_report').checked });
         await ctx.refreshMe(); toast('Ayarlar kaydedildi.', 'good');
       } catch (e) { if (!showErrors(f, e)) fail(e); }
     }); });

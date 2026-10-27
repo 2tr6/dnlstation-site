@@ -11,6 +11,7 @@ use Dnl\Core\Config;
 use Dnl\Core\Db;
 use Dnl\Core\Http;
 use Dnl\Core\HttpError;
+use Dnl\Core\SecurityLog;
 use Dnl\Core\Input;
 use Dnl\Core\Mailer;
 use Dnl\Core\RateLimiter;
@@ -38,6 +39,7 @@ final class AuthController
         // Bot tuzağı: insanlara görünmeyen alan doluysa kayıt yapılmaz
         $hp = Http::json()['website'] ?? '';
         if (!is_string($hp) || $hp !== '') {
+            SecurityLog::add('bot_trap', '', null, 'kayıt formu');
             throw new HttpError(422, 'Kayıt tamamlanamadı. Lütfen sayfayı yenileyip tekrar deneyin.', 'validation');
         }
         $in = new Input(Http::json());
@@ -147,12 +149,15 @@ final class AuthController
                 Db::update('users', ['failed_logins' => $lock ? 0 : $fails, 'locked_until' => $lock, 'updated_at' => $now], ['id' => (int)$user['id']]);
                 if ($lock) {
                     Audit::log((int)$user['business_id'], (int)$user['id'], 'auth.locked', 'user', (int)$user['id']);
+                    SecurityLog::add('account_locked', $email, (int)$user['business_id']);
                 }
             }
+            SecurityLog::add('login_failed', $email, $user ? (int)$user['business_id'] : null, $user ? '' : 'kayıtsız e-posta');
             throw new HttpError(401, self::GENERIC_LOGIN_ERROR, 'invalid_credentials');
         }
         $susp = Db::value('SELECT suspended_at FROM businesses WHERE id = :b', ['b' => $user['business_id']]);
         if ($susp !== null) {
+            SecurityLog::add('login_suspended', $email, (int)$user['business_id']);
             throw new HttpError(403, 'İşletme hesabınız askıya alındı. Destek için bizimle iletişime geçin.', 'suspended');
         }
         if (Config::get('require_email_verification') && $user['email_verified_at'] === null) {
@@ -163,6 +168,7 @@ final class AuthController
         }
         Auth::login($user, $remember);
         Audit::log((int)$user['business_id'], (int)$user['id'], 'auth.login', 'user', (int)$user['id']);
+        SecurityLog::add('login_ok', $email, (int)$user['business_id']);
         return ['redirect' => (int)$user['must_change_password'] === 1 ? '/panel/#/hesap' : '/panel/'];
     }
 
@@ -189,7 +195,8 @@ final class AuthController
                 Tokens::revokeAll((int)$user['id'], 'reset');
                 [$sel, $val] = Tokens::create((int)$user['id'], 'reset', self::RESET_TTL);
                 $link = Mailer::url('/sifre-yenile/#t=' . $sel . '.' . $val);
-                \Dnl\Services\Emails::reset($user['email'], $user['name'], $link);
+                \Dnl\Services\Emails::reset($user['email'], $user['name'], $link, false, (int)$user['business_id']);
+                SecurityLog::add('reset_requested', $email, (int)$user['business_id']);
                 Audit::log((int)$user['business_id'], (int)$user['id'], 'auth.reset_requested', 'user', (int)$user['id']);
             }
         }
@@ -329,6 +336,7 @@ final class AuthController
         Tokens::revokeAll($uid, 'verify');
         [$sel, $val] = Tokens::create($uid, 'verify', self::VERIFY_TTL);
         $link = Mailer::url('/dogrula/#t=' . $sel . '.' . $val);
-        $welcome ? \Dnl\Services\Emails::welcomeVerify($email, $name, $business, $link) : \Dnl\Services\Emails::verify($email, $name, $link);
+        $bid = (int)Db::value('SELECT business_id FROM users WHERE id = :u', ['u' => $uid]);
+        $welcome ? \Dnl\Services\Emails::welcomeVerify($email, $name, $business, $link, $bid) : \Dnl\Services\Emails::verify($email, $name, $link, $bid);
     }
 }

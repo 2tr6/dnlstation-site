@@ -13,6 +13,7 @@ use Dnl\Core\Http;
 use Dnl\Core\HttpError;
 use Dnl\Core\Input;
 use Dnl\Core\RateLimiter;
+use Dnl\Core\SecurityLog;
 use Dnl\Core\Session;
 use Dnl\Core\Totp;
 
@@ -27,6 +28,7 @@ final class AdminAuthController
         $lock = $fails >= AdminAuth::MAX_FAILS ? gmdate('Y-m-d H:i:s', time() + AdminAuth::LOCK_MINUTES * 60) : null;
         Db::exec('UPDATE admins SET failed_logins = :f, locked_until = :l, updated_at = :n WHERE id = :id', ['f' => $lock ? 0 : $fails, 'l' => $lock, 'n' => Db::now(), 'id' => $a['id']]);
         AdminAuth::log((int)$a['id'], $lock ? 'admin.locked' : 'admin.login_failed', 'admin', (int)$a['id']);
+        SecurityLog::add($lock ? 'admin_locked' : 'admin_login_failed', (string)$a['email']);
     }
 
     public static function login(): array
@@ -48,6 +50,8 @@ final class AdminAuthController
         if (!$a || !$ok || (int)$a['is_active'] !== 1) {
             if ($a) {
                 self::failAccount($a);
+            } else {
+                SecurityLog::add('admin_login_failed', $email, null, 'kayıtsız e-posta');
             }
             throw new HttpError(401, self::GENERIC, 'invalid_credentials');
         }
@@ -100,6 +104,7 @@ final class AdminAuthController
         $a = Db::one('SELECT * FROM admins WHERE id = :id', ['id' => $a['id']]);
         AdminAuth::complete($a);
         AdminAuth::log((int)$a['id'], $p['setup'] ? 'admin.2fa_enabled' : 'admin.login', 'admin', (int)$a['id']);
+        SecurityLog::add('admin_login_ok', (string)$a['email']);
         return ['ok' => true, 'csrf' => Session::csrf()];
     }
 

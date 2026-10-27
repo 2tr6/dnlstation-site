@@ -13,8 +13,10 @@ final class SystemSettings
     public const DEFAULTS = [
         'trial_days' => 7,
         'payment_info' => '',
-        'whatsapp' => '',
-        'support_email' => '',
+        'whatsapp' => '05377620708',
+        'support_email' => 'support@dnlstation.com.tr',
+        'maintenance' => false,
+        'maintenance_message' => '',
     ];
 
     private static ?array $cache = null;

@@ -45,7 +45,7 @@ try:
             page.screenshot(path=f'{SHOTS}/adm-{label}-detay.png', full_page=True)
             over = page.evaluate('document.documentElement.scrollWidth > window.innerWidth + 1')
             check(f'[{label}] Detay sayfasında yatay taşma yok', not over)
-            for r in ['odemeler', 'duyuru', 'kayitlar', 'hesap', 'isletmeler']:
+            for r in ['odemeler', 'akis', 'eposta', 'guvenlik', 'sistem', 'duyuru', 'ayarlar', 'kayitlar', 'hesap', 'isletmeler']:
                 page.goto(BASE + '/yonetim/#/' + r); page.wait_for_timeout(600)
                 check(f'[{label}] #{r} taşma yok', not page.evaluate('document.documentElement.scrollWidth > window.innerWidth + 1'))
             check(f'[{label}] Sayfa/konsol hatası yok', not errors, errors[:4])

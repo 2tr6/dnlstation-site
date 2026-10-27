@@ -44,9 +44,15 @@ export function accountView(ctx) {
           h('dt', null, 'E-posta'), h('dd', null, me.user.email, ' ', me.user.verified ? h('span', { class: 'tag ok' }, 'Doğrulandı') : h('span', { class: 'tag warn' }, 'Doğrulanmadı')),
           h('dt', null, 'Rol'), h('dd', null, ROLE_LABEL[me.user.role] || me.user.role),
           h('dt', null, 'İşletme'), h('dd', null, me.business.name),
-          me.user.role === 'owner' ? [h('dt', null, 'Paket'), h('dd', null, sub.plan_name + ' · ' + (sub.state === 'trial' ? `Deneme (${sub.days_left} gün kaldı)` : sub.state === 'active' ? 'Aktif · ' + dateTime(sub.until) + ' tarihine kadar' : 'Süresi doldu'))] : null),
+          me.user.role === 'owner' ? [h('dt', null, 'Paket'), h('dd', null, sub.plan_name + ' · ' + (sub.state === 'lifetime' ? 'Ömür boyu üyelik' : sub.state === 'trial' ? `Deneme (${sub.days_left} gün kaldı)` : sub.state === 'active' ? 'Aktif · ' + dateTime(sub.until) + ' tarihine kadar' : 'Süresi doldu'))] : null),
         !me.user.verified ? h('button', { class: 'btn btn-ghost sm', type: 'button', onclick: (ev) => busy(ev.currentTarget, async () => {
           try { const r = await post('/auth/resend-verification', {}); toast(r.message || 'Doğrulama bağlantısı gönderildi.', 'good'); } catch (e) { fail(e); }
         }) }, 'Doğrulama e-postasını tekrar gönder') : null),
-      h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', null, 'Şifre değiştir')), f)));
+      h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', null, 'Şifre değiştir')), f)),
+    h('section', { class: 'card support-card' }, h('div', { class: 'card-h' }, h('h2', null, 'Destek')),
+      h('p', { class: 'muted' }, 'Takıldığınız her konuda bize ulaşın.'),
+      h('div', { class: 'row-wrap' },
+        h('a', { class: 'btn btn-primary', href: 'https://wa.me/905377620708', target: '_blank', rel: 'noopener noreferrer' }, 'WhatsApp: +90 537 762 07 08'),
+        h('a', { class: 'btn btn-ghost', href: 'mailto:support@dnlstation.com.tr' }, 'support@dnlstation.com.tr'),
+        h('a', { class: 'btn btn-ghost', href: 'https://www.instagram.com/dnlstation/', target: '_blank', rel: 'noopener noreferrer' }, 'Instagram DM'))));
 }

@@ -98,7 +98,7 @@ try:
             page.screenshot(path=f'{SHOTS}/{label}-6-duzenle.png', full_page=True)
             page.click('.edit-bar button:has-text("Bitti")')
             # Diğer ekranlar
-            for route in ['kafe', 'vardiya', 'raporlar', 'urunler', 'ayarlar', 'ayarlar/personel', 'ayarlar/ekran', 'ayarlar/kayit', 'hesap']:
+            for route in ['kafe', 'rezervasyon', 'vardiya', 'musteriler', 'raporlar', 'giderler', 'urunler', 'ayarlar', 'ayarlar/personel', 'ayarlar/ekran', 'ayarlar/kayit', 'paket', 'hesap']:
                 page.goto(BASE + '/panel/#/' + route)
                 page.wait_for_timeout(700)
                 over = page.evaluate('document.documentElement.scrollWidth > window.innerWidth + 1')

@@ -219,8 +219,9 @@ final class Games
                 'sh' => $shiftId, 'u' => $uid, 'c' => $endAt, 'id' => $s['ticket_id'], 'b' => $bid,
             ]);
             foreach ($payments as $p) {
-                Db::insert('payments', ['business_id' => $bid, 'ticket_id' => $s['ticket_id'], 'shift_id' => $shiftId, 'method' => $p['method'], 'amount_cents' => $p['amount'], 'created_by' => $uid, 'created_at' => $endAt, 'voided_at' => null]);
+                Db::insert('payments', ['business_id' => $bid, 'ticket_id' => $s['ticket_id'], 'shift_id' => $shiftId, 'method' => $p['method'], 'amount_cents' => $p['amount'], 'customer_id' => $p['customer_id'] ?? null, 'created_by' => $uid, 'created_at' => $endAt, 'voided_at' => null]);
             }
+            Customers::chargePayments($bid, $uid, (int)$s['ticket_id'], $shiftId, $payments);
             Db::exec('UPDATE game_tables SET active_session_id = NULL WHERE id = :t AND business_id = :b AND active_session_id = :s', ['t' => $s['table_id'], 'b' => $bid, 's' => $sid]);
         });
         Audit::log($bid, $uid, 'session.close', 'session', $sid, ['total' => $total, 'discount' => $discountCents, 'game' => $bill['game_cents'], 'items' => $bill['items_cents']]);
@@ -268,19 +269,26 @@ final class Games
         foreach (array_values($payments) as $i => $p) {
             $method = is_array($p) ? ($p['method'] ?? '') : '';
             $amount = is_array($p) ? ($p['amount'] ?? null) : null;
-            if (!in_array($method, ['cash', 'card', 'other'], true)) {
+            if (!in_array($method, ['cash', 'card', 'other', 'credit'], true)) {
                 throw new HttpError(422, 'Ödeme bilgisi geçersiz.', 'validation');
+            }
+            $cust = null;
+            if ($method === 'credit') {
+                $cust = $p['customer_id'] ?? null;
+                if (!is_int($cust) || $cust < 1) {
+                    throw new HttpError(422, 'Veresiye için müşteri seçin.', 'validation');
+                }
             }
             if ($amount === 'rest' && $restIdx === null) {
                 $restIdx = $i;
-                $out[$i] = ['method' => $method, 'amount' => 0];
+                $out[$i] = ['method' => $method, 'amount' => 0, 'customer_id' => $cust];
                 continue;
             }
             if (!is_int($amount) || $amount <= 0 || $amount > 100000000) {
                 throw new HttpError(422, 'Ödeme bilgisi geçersiz.', 'validation');
             }
             $sum += $amount;
-            $out[$i] = ['method' => $method, 'amount' => $amount];
+            $out[$i] = ['method' => $method, 'amount' => $amount, 'customer_id' => $cust];
         }
         if ($restIdx !== null) {
             $rest = $total - $sum;
@@ -334,7 +342,7 @@ final class Games
             throw new HttpError(409, 'Bu hesap kapanmış bir vardiyaya ait; geri alınamaz.', 'shift_closed');
         }
         $now = Db::now();
-        Db::tx(static function () use ($bid, $sid, $s, $now) {
+        Db::tx(static function () use ($bid, $uid, $sid, $s, $now) {
             $claimed = Db::exec('UPDATE game_tables SET active_session_id = :s WHERE id = :t AND business_id = :b AND active_session_id IS NULL', ['s' => $sid, 't' => $s['table_id'], 'b' => $bid]);
             if ($claimed !== 1) {
                 throw new HttpError(409, 'Masa şu an dolu; önce o masayı kapatın.', 'occupied');
@@ -345,6 +353,7 @@ final class Games
             }
             $last = Db::value('SELECT MAX(id) FROM session_segments WHERE session_id = :s', ['s' => $sid]);
             Db::exec('UPDATE session_segments SET ended_at = NULL WHERE id = :id', ['id' => $last]);
+            Customers::reverseTicket($bid, $uid, (int)$s['ticket_id']);
             Db::exec('UPDATE payments SET voided_at = :v WHERE ticket_id = :t AND business_id = :b AND voided_at IS NULL', ['v' => $now, 't' => $s['ticket_id'], 'b' => $bid]);
             Db::exec("UPDATE tickets SET status = 'open', shift_id = NULL, closed_by = NULL, closed_at = NULL, discount_cents = 0, total_cents = 0 WHERE id = :id AND business_id = :b", ['id' => $s['ticket_id'], 'b' => $bid]);
         });

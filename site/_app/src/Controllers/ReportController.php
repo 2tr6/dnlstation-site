@@ -67,7 +67,7 @@ final class ReportController
             $series[] = ['date' => $key, 'total_cents' => $days[$key] ?? 0];
             $d = $d->modify('+1 day');
         }
-        $methods = ['cash' => 0, 'card' => 0, 'other' => 0];
+        $methods = ['cash' => 0, 'card' => 0, 'other' => 0, 'credit' => 0];
         foreach (Db::all("SELECT p.method, SUM(p.amount_cents) AS s FROM payments p JOIN tickets t ON t.id = p.ticket_id WHERE p.business_id = :b AND p.voided_at IS NULL AND t.status = 'paid' AND t.closed_at >= :f AND t.closed_at < :t GROUP BY p.method", $p) as $r) {
             $methods[$r['method']] = (int)$r['s'];
         }
@@ -86,6 +86,11 @@ final class ReportController
         arsort($byStaff);
         $voids = (int)Db::value("SELECT COUNT(*) FROM tickets WHERE business_id = :b AND status = 'void' AND closed_at >= :f AND closed_at < :t", $p);
 
+        // Gider, maliyet, veresiye tahsilatı
+        $expense = (int)Db::value('SELECT COALESCE(SUM(amount_cents),0) FROM expenses WHERE business_id = :b AND voided_at IS NULL AND spent_on >= :f AND spent_on <= :t', ['b' => $bid, 'f' => $from, 't' => $to]);
+        $cost = Db::one("SELECT COALESCE(SUM(i.cost_cents),0) AS c, COALESCE(SUM(CASE WHEN i.cost_cents IS NOT NULL THEN i.total_cents ELSE 0 END),0) AS rev FROM ticket_items i JOIN tickets t ON t.id = i.ticket_id
+            WHERE i.business_id = :b AND t.status = 'paid' AND t.closed_at >= :f AND t.closed_at < :t", $p);
+        $collections = (int)Db::value("SELECT COALESCE(SUM(-amount_cents),0) FROM customer_moves WHERE business_id = :b AND kind = 'collection' AND created_at >= :f AND created_at < :t", $p);
         // Yoğunluk: haftanın günü × saat (yerel saat), başlayan masa oturumlarına göre
         $heat = array_fill(0, 7, array_fill(0, 24, 0));
         foreach (Db::all("SELECT started_at FROM play_sessions WHERE business_id = :b AND status = 'closed' AND started_at >= :f AND started_at < :t", $p) as $r) {
@@ -101,6 +106,14 @@ final class ReportController
             'from' => $from, 'to' => $to,
             'heatmap' => $heat,
             'previous' => ['revenue' => (int)$prev['total'], 'tickets' => (int)$prev['cnt']],
+            'finance' => [
+                'expense_cents' => $expense,
+                'product_cost_cents' => (int)$cost['c'],
+                'product_revenue_with_cost_cents' => (int)$cost['rev'],
+                'credit_sales_cents' => $methods['credit'],
+                'collections_cents' => $collections,
+                'net_cents' => $tot['revenue'] - (int)$cost['c'] - $expense,
+            ],
             'totals' => $tot + ['voids' => $voids, 'avg_ticket' => $tot['tickets'] ? (int)round($tot['revenue'] / $tot['tickets']) : 0],
             'methods' => $methods,
             'series' => $series,

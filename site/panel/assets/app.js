@@ -9,19 +9,25 @@ import { settingsView } from './v-settings.js?v=1';
 import { accountView } from './v-account.js?v=1';
 import { setupView } from './v-setup.js?v=1';
 import { billingView } from './v-billing.js?v=1';
+import { customersView } from './v-customers.js?v=1';
+import { expensesView } from './v-expenses.js?v=1';
+import { reservationsView } from './v-reservations.js?v=1';
 
 const ROUTES = {
   masalar: { title: 'Masalar', icon: 'grid', view: tablesView, perm: 'tables.operate', tab: true },
   kafe: { title: 'Kafeterya', icon: 'cup', view: cafeView, perm: 'sales.quick', tab: true },
   vardiya: { title: 'Kasa', icon: 'wallet', view: shiftView, perm: 'shift.operate', tab: true },
   raporlar: { title: 'Raporlar', icon: 'chart', view: reportsView, perm: 'reports.view', tab: true },
+  rezervasyon: { title: 'Rezervasyon', icon: 'calendar', view: reservationsView, perm: 'reservations.use' },
+  musteriler: { title: 'Müşteriler', icon: 'users', view: customersView, perm: 'customers.use' },
+  giderler: { title: 'Giderler', icon: 'receipt', view: expensesView, perm: 'expenses.manage' },
   urunler: { title: 'Ürünler', icon: 'box', view: productsView, perm: 'products.manage' },
   ayarlar: { title: 'Ayarlar', icon: 'gear', view: settingsView, perm: null, anyPerm: ['settings.tables', 'settings.business', 'staff.manage', 'display.manage', 'audit.view'] },
   paket: { title: 'Paketim', icon: 'wallet', view: billingView, perm: 'settings.business' },
   hesap: { title: 'Hesabım', icon: 'user', view: accountView, perm: null },
   kurulum: { title: 'Kurulum', icon: 'gear', view: setupView, perm: null, hidden: true },
 };
-const ORDER = ['masalar', 'kafe', 'vardiya', 'raporlar', 'urunler', 'ayarlar', 'paket', 'hesap'];
+const ORDER = ['masalar', 'kafe', 'rezervasyon', 'vardiya', 'musteriler', 'raporlar', 'giderler', 'urunler', 'ayarlar', 'paket', 'hesap'];
 
 const app = $('#app');
 let current = null; // { name, cleanup }
@@ -80,7 +86,8 @@ function suspendedScreen() {
   app.className = 'boot-err'; app.removeAttribute('aria-busy');
   fill(app, h('div', { class: 'wm' }, 'DNL'), h('h1', null, 'İşletme hesabınız askıya alındı'),
     h('p', { class: 'muted' }, 'Verileriniz güvende. Hesabınızı yeniden açmak için bizimle iletişime geçin.'),
-    h('a', { class: 'btn btn-ghost', href: 'https://www.instagram.com/dnlstation/', target: '_blank', rel: 'noopener' }, 'İletişim'),
+    h('a', { class: 'btn btn-ghost', href: 'https://wa.me/905377620708', target: '_blank', rel: 'noopener noreferrer' }, 'WhatsApp destek'),
+    h('a', { class: 'btn btn-ghost', href: 'mailto:support@dnlstation.com.tr' }, 'support@dnlstation.com.tr'),
     h('button', { class: 'btn btn-primary', type: 'button', onclick: logout }, 'Çıkış yap'));
 }
 
@@ -118,7 +125,7 @@ function shell() {
     h('div', { class: 'top-l' }, h('span', { class: 'wm sm only-m' }, 'DNL'), h('h1', { class: 'top-title', id: 'top-title' }, '')),
     h('div', { class: 'top-r', id: 'top-r' },
       h('span', { class: 'chip shift-chip', id: 'shift-chip' }),
-      h('span', { class: 'chip plan-chip only-d' }, me.subscription.state === 'trial' ? `Deneme · ${me.subscription.days_left} gün` : me.subscription.plan_name)));
+      h('span', { class: 'chip plan-chip only-d' }, me.subscription.state === 'trial' ? `Deneme · ${me.subscription.days_left} gün` : me.subscription.state === 'lifetime' ? 'Ömür boyu' : me.subscription.plan_name)));
   const tabs = h('nav', { class: 'tabs', 'aria-label': 'Alt menü' }, navItems(true),
     h('button', { class: 'nav-item', type: 'button', onclick: moreSheet }, icon('more', 20), h('span', null, 'Diğer')));
   const main = h('main', { class: 'main', id: 'main', tabindex: '-1' });

@@ -12,6 +12,9 @@ export function zReport(z, bizName) {
     row('Toplam tahsilat', money(z.revenue_cents), 'big'),
     h('hr'),
     row('Nakit', money(z.cash_cents)), row('Kart', money(z.card_cents)), row('Diğer', money(z.other_cents)),
+    z.credit_cents ? row('Veresiye satış', money(z.credit_cents)) : null,
+    z.collections_cents ? row('Veresiye tahsilatı', money(z.collections_cents)) : null,
+    z.expense_cents ? row('Giderler', '−' + money(z.expense_cents)) : null,
     h('hr'),
     row('Açılış kasası', money(z.opening_cash_cents)), row('Beklenen nakit', money(z.expected_cash_cents)),
     z.counted_cash_cents !== null ? row('Sayılan nakit', money(z.counted_cash_cents)) : null,
@@ -51,7 +54,8 @@ export function shiftView(ctx) {
     } else {
       const s = r.shift;
       const stats = r.can_see_totals ? h('div', { class: 'kpis' },
-        k('Toplam tahsilat', money(s.revenue_cents)), k('Nakit', money(s.cash_cents)), k('Kart', money(s.card_cents)), k('Hesap', String(s.tickets))) : null;
+        k('Toplam tahsilat', money(s.revenue_cents)), k('Nakit', money(s.cash_cents)), k('Kart', money(s.card_cents)), k('Hesap', String(s.tickets)),
+        k('Veresiye satış', money(s.credit_cents || 0)), k('Veresiye tahsilatı', money(s.collections_cents || 0)), k('Kasadan gider', money(s.expense_cash_cents || 0)), k('Kasada olması gereken', money(s.expected_cash_cents))) : null;
       const counted = moneyInp('counted_cash', null);
       const note = inp('note', { maxlength: 200, placeholder: 'İsteğe bağlı' });
       const ok = h('button', { class: 'btn btn-primary', type: 'button' }, 'Kasayı kapat ve Z raporu al');

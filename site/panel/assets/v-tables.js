@@ -2,6 +2,9 @@
 import { state, h, $, $$, clear, icon, get, post, del, can, toast, fail, modal, confirmBox, money, dur, durShort, timeOnly, busy, seg, moneyInp, inputToCents, moneyStr, field, inp, beep, empty, METHOD_LABEL, ApiError, fill, add } from './core.js?v=1';
 import { productPicker } from './v-cafe.js?v=1';
 import { catalogEditors } from './editors.js?v=1';
+import { pickCustomer, balanceTag } from './v-customers.js?v=1';
+import { printReceipt } from './receipt.js?v=1';
+import { reservationForm } from './v-reservations.js?v=1';
 
 const POLL_MS = 5000;
 
@@ -24,7 +27,9 @@ export function tablesView(ctx) {
   const grid = h('div', { class: 'tgrid', 'aria-live': 'off' });
   const editBtn = canEdit ? h('button', { class: 'btn btn-ghost sm', type: 'button', onclick: () => setEditing(!editing) }, icon('edit', 16), 'Düzenle') : null;
   const toolbar = h('div', { class: 'toolbar' }, chipBox,
-    h('div', { class: 'tb-r' }, editBtn, h('button', { class: 'btn btn-ghost sm', type: 'button', onclick: recentModal }, icon('undo', 16), 'Son hesaplar')));
+    h('div', { class: 'tb-r' }, editBtn,
+      can('reservations.use') ? h('button', { class: 'btn btn-ghost sm', type: 'button', onclick: () => reservationForm(null, data ? data.tables : [], () => load(false)) }, icon('calendar', 16), 'Rezervasyon') : null,
+      h('button', { class: 'btn btn-ghost sm', type: 'button', onclick: recentModal }, icon('undo', 16), 'Son hesaplar')));
   const editBar = h('div', { class: 'banner info edit-bar', hidden: true },
     icon('edit', 18), h('span', { class: 'grow' }, 'Düzenleme modu: masaya dokunarak adını, türünü ya da sırasını değiştirin.'),
     h('button', { class: 'btn btn-ghost sm', type: 'button', onclick: async (ev) => busy(ev.currentTarget, async () => { try { await loadCat(); ed.addTables(cat.types.map((t) => [t.id, t.name])); } catch (e) { fail(e); } }) }, icon('plus', 16), 'Masa ekle'),
@@ -109,6 +114,7 @@ export function tablesView(ctx) {
       kpi('Açık hesaplar', money(k.open_amount_cents), 'clock', 'live-open'),
       k.revenue_today_cents !== null ? kpi('Bugünkü tahsilat', money(k.revenue_today_cents), 'wallet') : null,
       k.low_stock > 0 && can('stock.manage') ? kpi('Kritik stok', String(k.low_stock), 'alert', null, '#/urunler', true) : null,
+      k.reservations_today > 0 ? kpi('Bugün rezervasyon', String(k.reservations_today), 'calendar', null, '#/rezervasyon') : null,
     );
     if (!data.tables.length) {
       fill(grid, empty('Henüz masa tanımlanmamış.', can('settings.tables') ? h('a', { class: 'btn btn-primary', href: '#/ayarlar' }, 'Masaları tanımlayın') : h('p', { class: 'muted' }, 'Yöneticinizin masaları tanımlaması gerekiyor.')));
@@ -131,7 +137,7 @@ export function tablesView(ctx) {
             h('button', { type: 'button', class: 'tc-btn', 'aria-label': t.name + ' ürün ekle', onclick: (e) => { e.stopPropagation(); quickProducts(s, t); } }, icon('cup', 16), 'Ürün'),
             h('button', { type: 'button', class: 'tc-btn pay', 'aria-label': t.name + ' hesap al', onclick: (e) => { e.stopPropagation(); quickCheckout(s.id); } }, icon('wallet', 16), 'Hesap')),
         ] : [
-          h('div', { class: 'tc-free' }, 'Boş'),
+          t.reservation ? h('div', { class: 'tc-free res-badge' }, icon('calendar', 16), timeOnly(t.reservation.at) + ' · ' + t.reservation.name) : h('div', { class: 'tc-free' }, 'Boş'),
           h('div', { class: 'tc-sub' }, h('span', { class: 'muted sm' }, priceHint(type)), editing ? null : h('span', { class: 'tc-open' }, icon('plus', 16), 'Aç')),
         ], editing ? h('span', { class: 'tc-edit' }, icon('edit', 16), 'Düzenle') : null);
       return card;
@@ -277,6 +283,7 @@ export function tablesView(ctx) {
     const closeBtn = h('button', { class: 'btn btn-primary', type: 'button', onclick: () => checkout() }, icon('wallet', 18), 'Hesap al');
     const foot = [
       can('session.cancel') ? h('button', { class: 'btn btn-ghost danger-t', type: 'button', onclick: cancel }, 'İptal') : null,
+      h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => printReceipt(Object.assign({}, d, { subtotal_cents: liveD().amount, payments: [] }), ctx.me.business.name, true) }, icon('print', 16), 'Ara hesap'),
       h('button', { class: 'btn btn-ghost', type: 'button', onclick: move }, icon('move', 16), 'Taşı'),
       closeBtn,
     ];
@@ -369,6 +376,7 @@ export function tablesView(ctx) {
     const m = modal({ title: 'Son hesaplar', wide: true, body: r.items.length ? h('ul', { class: 'list' }, r.items.map((it) => h('li', null,
       h('div', null, h('b', null, it.table_name), h('small', { class: 'muted' }, ' · ' + timeOnly(it.ended_at) + (it.closed_by ? ' · ' + it.closed_by : ''))),
       h('div', { class: 'r' }, it.status === 'cancelled' ? h('span', { class: 'tag bad' }, 'İptal') : h('b', { class: 'mono' }, money(it.total_cents)),
+        it.status === 'closed' ? h('button', { class: 'icon-btn sm', type: 'button', 'aria-label': 'Fiş yazdır', onclick: async () => { try { printReceipt(await get('/tickets/' + it.ticket_id), ctx.me.business.name); } catch (e) { fail(e); } } }, icon('print', 16)) : null,
         it.can_reopen && can('session.reopen') ? h('button', { class: 'btn btn-ghost sm', type: 'button', onclick: async (ev) => {
           if (!await confirmBox('Hesabı geri al', `${it.table_name} hesabı yeniden açılsın mı? Alınan ödemeler iptal edilir ve masa tekrar dolu görünür.`, 'Geri al')) return;
           busy(ev.currentTarget, async () => { try { await post(`/sessions/${it.id}/reopen`, {}); m.close(); toast('Hesap geri alındı.', 'good'); load(false); } catch (e) { fail(e); } });
@@ -386,7 +394,9 @@ export function tablesView(ctx) {
  */
 export function checkoutModal(opts) {
   const canDisc = can('discount.apply');
-  let dtype = 'none', method = 'cash';
+  let dtype = 'none', method = 'cash', customer = null;
+  const custBox = h('div', { class: 'cust-sel' });
+  const advance = h('input', { class: 'inp mono', inputmode: 'decimal', placeholder: '0,00', autocomplete: 'off', name: 'advance' });
   const dval = h('input', { class: 'inp mono', inputmode: 'decimal', placeholder: '0', autocomplete: 'off', name: 'discount_value' });
   const dnote = inp('discount_note', { maxlength: 80, placeholder: 'İndirim notu (isteğe bağlı)' });
   const cash = h('input', { class: 'inp mono', inputmode: 'decimal', placeholder: '0,00', autocomplete: 'off', name: 'cash' });
@@ -414,6 +424,12 @@ export function checkoutModal(opts) {
       const rest = Number.isFinite(x) && x !== null ? c.total - x : c.total;
       splitEl.querySelector('[data-rest]').textContent = rest >= 0 ? 'Kart: ' + money(rest) : 'Nakit tutar hesabı aşıyor';
     }
+    if (method === 'credit') {
+      const x = inputToCents(advance.value);
+      const rest = Number.isFinite(x) && x !== null ? c.total - x : c.total;
+      const el = splitEl.querySelector('[data-rest]');
+      if (el) el.textContent = rest >= 0 ? 'Veresiyeye yazılacak: ' + money(rest) : 'Peşin tutar hesabı aşıyor';
+    }
     if (method === 'cash') {
       const g = inputToCents(given.value);
       changeEl.textContent = Number.isFinite(g) && g !== null && g >= c.total ? 'Para üstü: ' + money(g - c.total) : '';
@@ -423,17 +439,24 @@ export function checkoutModal(opts) {
     clear(splitEl);
     if (method === 'split') splitEl.append(field('Nakit tutar', cash), h('p', { class: 'hint mono', 'data-rest': '' }));
     if (method === 'cash') splitEl.append(field('Alınan nakit (para üstü için)', given), changeEl);
+    if (method === 'credit') {
+      drawCust();
+      splitEl.append(custBox, field('Peşin alınan nakit (isteğe bağlı)', advance), h('p', { class: 'hint mono', 'data-rest': '' }));
+    }
   };
+  const drawCust = () => fill(custBox, customer ? h('div', { class: 'cust-chosen' }, h('div', null, h('b', null, customer.name), ' ', balanceTag(customer)), h('button', { class: 'btn btn-ghost sm', type: 'button', onclick: choose }, 'Değiştir'))
+    : h('button', { class: 'btn btn-ghost btn-block', type: 'button', onclick: choose }, icon('users', 18), 'Müşteri seçin'));
+  const choose = () => pickCustomer((c) => { customer = c; drawCust(); paint(); });
   if (canDisc) {
     discBox.append(h('span', { class: 'lbl' }, 'İndirim'), seg([['none', 'Yok'], ['percent', '%'], ['amount', '₺']], dtype, (v) => {
       dtype = v; dval.value = ''; dval.disabled = v === 'none'; dval.placeholder = v === 'percent' ? 'Yüzde (0-100)' : 'Tutar'; paint();
     }), h('div', { class: 'row-wrap', style: { marginTop: '8px' } }, dval, dnote));
     dval.disabled = true;
   }
-  [dval, cash, given].forEach((i) => i.addEventListener('input', paint));
+  [dval, cash, given, advance].forEach((i) => i.addEventListener('input', paint));
   const body = h('div', { class: 'form co' }, linesEl, h('div', { class: 'co-sum' }, h('span', null, 'Ödenecek'), totalEl),
     canDisc ? discBox : null,
-    h('div', { class: 'field' }, h('span', { class: 'lbl' }, 'Ödeme'), seg([['cash', 'Nakit'], ['card', 'Kart'], ['split', 'Nakit + Kart'], ['other', 'Diğer']], method, (v) => { method = v; renderSplit(); paint(); })),
+    h('div', { class: 'field' }, h('span', { class: 'lbl' }, 'Ödeme'), seg([['cash', 'Nakit'], ['card', 'Kart'], ['split', 'Nakit + Kart'], ...(can('customers.use') ? [['credit', 'Veresiye']] : []), ['other', 'Diğer']], method, (v) => { method = v; renderSplit(); paint(); if (v === 'credit' && !customer) choose(); })),
     splitEl, opts.live ? h('p', { class: 'hint' }, 'Süre işlemeye devam ediyor; kesin tutar onayladığınız anda hesaplanır.') : null);
   renderSplit(); paint();
   const iv = setInterval(paint, 1000);
@@ -443,7 +466,12 @@ export function checkoutModal(opts) {
     const payload = { discount_type: dtype, discount_note: dnote.value };
     if (dtype === 'percent') { const p = parseInt(dval.value, 10); if (!(p >= 0 && p <= 100)) { toast('İndirim yüzdesi 0 ile 100 arasında olmalı.', 'bad'); return; } payload.discount_value = p; }
     if (dtype === 'amount') { const c = inputToCents(dval.value); if (!Number.isFinite(c) || c === null) { toast('İndirim tutarı geçersiz.', 'bad'); return; } payload.discount_value = moneyStr(c); }
-    if (method === 'split') {
+    if (method === 'credit') {
+      if (!customer) { toast('Veresiye için müşteri seçin.', 'bad'); choose(); return; }
+      const x = inputToCents(advance.value);
+      if (Number.isNaN(x)) { toast('Peşin tutar geçersiz.', 'bad'); return; }
+      payload.payments = x ? [{ method: 'cash', amount: x }, { method: 'credit', amount: 'rest', customer_id: customer.id }] : [{ method: 'credit', amount: 'rest', customer_id: customer.id }];
+    } else if (method === 'split') {
       const x = inputToCents(cash.value);
       if (!Number.isFinite(x) || !x) { toast('Nakit tutarı girin.', 'bad'); return; }
       payload.payments = [{ method: 'cash', amount: x }, { method: 'card', amount: 'rest' }];

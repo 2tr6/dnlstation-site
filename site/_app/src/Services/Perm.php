@@ -23,6 +23,10 @@ final class Perm
         'staff.manage'     => ['owner'],
         'display.manage'   => ['owner', 'manager'],
         'audit.view'       => ['owner'],
+        'customers.use'    => ['owner', 'manager', 'staff'],  // müşteri seç/ekle, veresiye yaz, tahsilat al
+        'customers.manage' => ['owner', 'manager'],           // limit, pasife alma, düzenleme
+        'expenses.manage'  => ['owner', 'manager'],
+        'reservations.use' => ['owner', 'manager', 'staff'],
     ];
 
     public static function roles(string $perm): array

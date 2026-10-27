@@ -44,6 +44,23 @@ $r->add('GET', '/admin/audit', fn() => C\AdminController::audit(), $ad);
 $r->add('GET', '/admin/announcement', fn() => C\AdminController::announcement(), $ad);
 $r->add('PUT', '/admin/announcement', fn() => C\AdminController::setAnnouncement(), $ad);
 $r->add('GET', '/admin/settings', fn() => C\AdminController::settings(), $ad);
+$r->add('GET', '/admin/businesses/{id}/activity', fn($p) => C\AdminController::activity($p), $ad);
+$r->add('GET', '/admin/businesses/{id}/export', fn($p) => C\AdminController::export($p), $ad);
+$r->add('PUT', '/admin/businesses/{id}', fn($p) => C\AdminController::updateBusiness($p), $ad);
+$r->add('POST', '/admin/businesses/{id}/lifetime', fn($p) => C\AdminController::setLifetime($p), $ad);
+$r->add('POST', '/admin/businesses/{id}/limits', fn($p) => C\AdminController::setLimits($p), $ad);
+$r->add('POST', '/admin/businesses/{id}/email', fn($p) => C\AdminController::emailBusiness($p), $ad);
+$r->add('POST', '/admin/businesses/{id}/delete', fn($p) => C\AdminController::deleteBusiness($p), $ad);
+$r->add('POST', '/admin/users/{id}/email', fn($p) => C\AdminController::changeUserEmail($p), $ad);
+$r->add('POST', '/admin/users/{id}/make-owner', fn($p) => C\AdminController::makeOwner($p), $ad);
+$r->add('GET', '/admin/system/status', fn() => C\AdminSystemController::status(), $ad);
+$r->add('POST', '/admin/system/test-email', fn() => C\AdminSystemController::testEmail(), $ad);
+$r->add('POST', '/admin/system/gc', fn() => C\AdminSystemController::gc(), $ad);
+$r->add('POST', '/admin/system/maintenance', fn() => C\AdminSystemController::maintenance(), $ad);
+$r->add('POST', '/admin/system/clear-errors', fn() => C\AdminSystemController::clearErrors(), $ad);
+$r->add('GET', '/admin/emails', fn() => C\AdminSystemController::emails(), $ad);
+$r->add('GET', '/admin/security', fn() => C\AdminSystemController::security(), $ad);
+$r->add('GET', '/admin/activity', fn() => C\AdminSystemController::activity(), $ad);
 $r->add('PUT', '/admin/settings', fn() => C\AdminController::saveSettings(), $ad);
 // İşletme: paket ve ödeme bilgileri (süresi dolsa da görüntülenebilir)
 $r->add('GET', '/billing', fn() => C\BillingController::show(), ['auth' => $all]);
@@ -98,6 +115,27 @@ $r->add('POST', '/products/{id}/count', fn($p) => C\ProductController::count($p)
 $r->add('POST', '/quick-sales', fn() => C\ProductController::quickSale(), $w);
 $r->add('GET', '/quick-sales', fn() => C\ProductController::recentQuick(), $a);
 $r->add('POST', '/quick-sales/{id}/void', fn($p) => C\ProductController::voidQuick($p), $w);
+
+// Müşteriler / veresiye
+$r->add('GET', '/customers', fn() => C\CustomerController::index(), $a);
+$r->add('POST', '/customers', fn() => C\CustomerController::create(), $w);
+$r->add('GET', '/customers/{id}', fn($p) => C\CustomerController::show($p), $a);
+$r->add('PUT', '/customers/{id}', fn($p) => C\CustomerController::update($p), $w);
+$r->add('POST', '/customers/{id}/collect', fn($p) => C\CustomerController::collect($p), $a);
+
+// Giderler
+$r->add('GET', '/expenses', fn() => C\ExpenseController::index(), $a);
+$r->add('POST', '/expenses', fn() => C\ExpenseController::create(), $w);
+$r->add('POST', '/expenses/{id}/void', fn($p) => C\ExpenseController::void($p), $w);
+
+// Rezervasyonlar
+$r->add('GET', '/reservations', fn() => C\ReservationController::index(), $a);
+$r->add('POST', '/reservations', fn() => C\ReservationController::create(), $w);
+$r->add('PUT', '/reservations/{id}', fn($p) => C\ReservationController::update($p), $w);
+$r->add('POST', '/reservations/{id}/status', fn($p) => C\ReservationController::status($p), $w);
+
+// Adisyon (fiş)
+$r->add('GET', '/tickets/{id}', fn($p) => C\TicketController::show($p), $a);
 
 // Vardiya
 $r->add('GET', '/shift', fn() => C\ShiftController::current(), $a);

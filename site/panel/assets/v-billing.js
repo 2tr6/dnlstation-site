@@ -2,7 +2,7 @@
 import { h, fill, add, icon, get, toast, money, dateTime, empty } from './core.js?v=1';
 
 const PERIOD = { aylik: 'Aylık', yillik: 'Yıllık' };
-const STATE = { trial: ['Deneme sürümü', 'warn'], active: ['Aktif', 'ok'], expired: ['Süresi doldu', 'bad'] };
+const STATE = { trial: ['Deneme sürümü', 'warn'], active: ['Aktif', 'ok'], expired: ['Süresi doldu', 'bad'], lifetime: ['Ömür boyu', 'ok'] };
 
 export function billingView(ctx) {
   const { main } = ctx;
@@ -18,8 +18,8 @@ export function billingView(ctx) {
       h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', null, 'Paketiniz'), h('span', { class: 'tag ' + stCls }, stLabel)),
         h('dl', { class: 'dl' },
           h('dt', null, 'Paket'), h('dd', null, `${s.plan_name} · ${PERIOD[s.period] || s.period}`),
-          h('dt', null, s.state === 'trial' ? 'Deneme bitişi' : 'Bitiş'), h('dd', null, dateTime(s.until)),
-          h('dt', null, 'Kalan'), h('dd', null, s.state === 'expired' ? 'Süresi doldu' : `${s.days_left} gün`),
+          h('dt', null, s.state === 'trial' ? 'Deneme bitişi' : 'Bitiş'), h('dd', null, s.state === 'lifetime' ? 'Süresiz' : dateTime(s.until)),
+          h('dt', null, 'Kalan'), h('dd', null, s.state === 'lifetime' ? 'Ömür boyu üyelik' : s.state === 'expired' ? 'Süresi doldu' : `${s.days_left} gün`),
           h('dt', null, 'İşletme kodu'), h('dd', { class: 'mono' }, b.reference, ' ', h('button', { class: 'btn btn-ghost sm', type: 'button', onclick: () => copy(b.reference, 'İşletme kodu kopyalandı.') }, icon('copy', 14), 'Kopyala'))),
         s.state === 'expired' ? h('div', { class: 'banner bad' }, icon('alert', 18), h('span', null, 'Kayıtlarınız silinmedi. Ödemeniz onaylanınca paneliniz kaldığı yerden açılır.')) : null),
       h('div', { class: 'plans' }, b.plans.map((p) => h('section', { class: 'card plan' + (p.key === s.plan ? ' cur' : '') },

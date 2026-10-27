@@ -67,9 +67,13 @@ final class RateLimiter
     /** Sınır aşıldığında 429 fırlatır. */
     public static function enforce(string $key, int $max, int $windowSeconds, string $message = 'Çok fazla deneme yaptınız. Lütfen biraz bekleyip tekrar deneyin.'): void
     {
+        $prefix = strtok($key, ':') ?: $key;
         if (!self::hit($key, $max, $windowSeconds)) {
             $wait = self::retryAfter($key);
             header('Retry-After: ' . $wait);
+            if ($prefix !== 'seclog') {
+                SecurityLog::add('rate_limited', '', null, $prefix);
+            }
             throw new HttpError(429, $message, 'rate_limited');
         }
     }

@@ -27,6 +27,7 @@ final class Products
             'id' => (int)$p['id'], 'category' => $p['category'], 'name' => $p['name'], 'price_cents' => (int)$p['price_cents'],
             'track_stock' => (int)$p['track_stock'] === 1, 'stock_qty' => (int)$p['stock_qty'], 'low_stock' => (int)$p['low_stock'],
             'sort' => (int)$p['sort'], 'is_active' => (int)$p['is_active'] === 1,
+            'cost_cents' => isset($p['cost_cents']) && $p['cost_cents'] !== null ? (int)$p['cost_cents'] : null,
         ];
     }
 
@@ -44,7 +45,7 @@ final class Products
         $now = Db::now();
         $row = [
             'category' => $d['category'], 'name' => $d['name'], 'price_cents' => $d['price_cents'],
-            'track_stock' => $d['track_stock'] ? 1 : 0, 'low_stock' => $d['low_stock'], 'sort' => $d['sort'],
+            'track_stock' => $d['track_stock'] ? 1 : 0, 'low_stock' => $d['low_stock'], 'sort' => $d['sort'], 'cost_cents' => $d['cost_cents'] ?? null,
             'is_active' => $d['is_active'] ? 1 : 0, 'updated_at' => $now,
         ];
         if ($id === null) {
@@ -127,7 +128,7 @@ final class Products
                 self::adjust($bid, $uid, (int)$p['id'], -$qty, 'sale', $ticketId);
             }
             $unit = (int)$p['price_cents'];
-            $itemId = Db::insert('ticket_items', ['business_id' => $bid, 'ticket_id' => $ticketId, 'product_id' => (int)$p['id'], 'name' => $p['name'], 'unit_cents' => $unit, 'qty' => $qty, 'total_cents' => $unit * $qty, 'created_by' => $uid, 'created_at' => Db::now()]);
+            $itemId = Db::insert('ticket_items', ['business_id' => $bid, 'ticket_id' => $ticketId, 'product_id' => (int)$p['id'], 'name' => $p['name'], 'unit_cents' => $unit, 'qty' => $qty, 'total_cents' => $unit * $qty, 'cost_cents' => isset($p['cost_cents']) && $p['cost_cents'] !== null ? (int)$p['cost_cents'] * $qty : null, 'created_by' => $uid, 'created_at' => Db::now()]);
             self::recalcItems($bid, $ticketId);
             return $itemId;
         });
@@ -215,12 +216,13 @@ final class Products
                 if ((int)$p['track_stock'] === 1) {
                     self::adjust($bid, $uid, (int)$pid, -$q, 'sale', $tid);
                 }
-                Db::insert('ticket_items', ['business_id' => $bid, 'ticket_id' => $tid, 'product_id' => (int)$pid, 'name' => $p['name'], 'unit_cents' => (int)$p['price_cents'], 'qty' => $q, 'total_cents' => (int)$p['price_cents'] * $q, 'created_by' => $uid, 'created_at' => $now]);
+                Db::insert('ticket_items', ['business_id' => $bid, 'ticket_id' => $tid, 'product_id' => (int)$pid, 'name' => $p['name'], 'unit_cents' => (int)$p['price_cents'], 'qty' => $q, 'total_cents' => (int)$p['price_cents'] * $q, 'cost_cents' => $p['cost_cents'] !== null ? (int)$p['cost_cents'] * $q : null, 'created_by' => $uid, 'created_at' => $now]);
             }
             Db::exec("UPDATE tickets SET status = 'paid', items_cents = :i, discount_cents = :d, total_cents = :t, shift_id = :s, closed_by = :u, closed_at = :c WHERE id = :id AND business_id = :b", ['i' => $subtotal, 'd' => $disc, 't' => $total, 's' => $shiftId, 'u' => $uid, 'c' => $now, 'id' => $tid, 'b' => $bid]);
             foreach ($payments as $pm) {
-                Db::insert('payments', ['business_id' => $bid, 'ticket_id' => $tid, 'shift_id' => $shiftId, 'method' => $pm['method'], 'amount_cents' => $pm['amount'], 'created_by' => $uid, 'created_at' => $now, 'voided_at' => null]);
+                Db::insert('payments', ['business_id' => $bid, 'ticket_id' => $tid, 'shift_id' => $shiftId, 'method' => $pm['method'], 'amount_cents' => $pm['amount'], 'customer_id' => $pm['customer_id'] ?? null, 'created_by' => $uid, 'created_at' => $now, 'voided_at' => null]);
             }
+            Customers::chargePayments($bid, $uid, $tid, $shiftId, $payments);
             return $tid;
         });
         Audit::log($bid, $uid, 'quick.sale', 'ticket', $ticketId, ['total' => $total, 'discount' => $disc]);
@@ -237,6 +239,7 @@ final class Products
             if ($n !== 1) {
                 throw new HttpError(409, 'Bu satış iptal edilemez (kapanmış vardiya ya da zaten iptal).', 'conflict');
             }
+            Customers::reverseTicket($bid, $uid, $ticketId);
             Db::exec('UPDATE payments SET voided_at = :v WHERE ticket_id = :t AND business_id = :b AND voided_at IS NULL', ['v' => Db::now(), 't' => $ticketId, 'b' => $bid]);
             self::restockTicket($bid, $ticketId, $uid, 'void');
         });

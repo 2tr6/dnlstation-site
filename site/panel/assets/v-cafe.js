@@ -1,6 +1,7 @@
 // Kafeterya: masasız hızlı satış (POS) ve ortak ürün seçici
 import { h, $, clear, icon, get, post, can, toast, fail, modal, confirmBox, money, timeOnly, busy, empty, fill, add } from './core.js?v=1';
 import { checkoutModal } from './v-tables.js?v=1';
+import { printReceipt } from './receipt.js?v=1';
 
 let menuCache = null, menuAt = 0;
 async function menu(force) {
@@ -97,7 +98,7 @@ export function cafeView(ctx) {
       fill(recentBox, h('div', { class: 'card-h' }, h('h2', null, 'Son satışlar')),
         r.items.length ? h('ul', { class: 'list' }, r.items.map((it) => h('li', { class: it.status === 'void' ? 'void' : '' },
           h('div', null, h('b', { class: 'mono' }, money(it.total_cents)), h('small', { class: 'muted' }, ' · ' + timeOnly(it.closed_at) + (it.by ? ' · ' + it.by : '')), h('div', { class: 'muted sm' }, it.summary)),
-          h('div', { class: 'r' }, it.status === 'void' ? h('span', { class: 'tag bad' }, 'İptal') : null,
+          h('div', { class: 'r' }, it.status === 'void' ? h('span', { class: 'tag bad' }, 'İptal') : h('button', { class: 'icon-btn sm', type: 'button', 'aria-label': 'Fiş yazdır', onclick: async () => { try { printReceipt(await get('/tickets/' + it.id), ctx.me.business.name); } catch (e) { fail(e); } } }, icon('print', 16)),
             it.can_void && can('session.cancel') ? h('button', { class: 'btn btn-ghost sm', type: 'button', onclick: async (ev) => {
               if (!await confirmBox('Satışı iptal et', 'Bu satış iptal edilsin mi? Ödeme kasadan düşülür, ürünler stoğa geri eklenir.', 'İptal et', true)) return;
               busy(ev.currentTarget, async () => { try { await post(`/quick-sales/${it.id}/void`, {}); toast('Satış iptal edildi.', 'good'); load(); } catch (e) { fail(e); } });

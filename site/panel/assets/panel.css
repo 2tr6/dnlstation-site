@@ -168,6 +168,8 @@ a.kpi:hover{border-color:var(--line-2);color:var(--text)}
 .btn.on{background:rgba(111,82,242,.16);border-color:rgba(138,115,255,.55);color:#fff}
 .edit-bar{margin-bottom:12px}
 
+.support-card{margin-top:16px}
+
 /* Paketim */
 .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:16px 0}
 .plans .card+.card{margin-top:0}
@@ -177,6 +179,26 @@ a.kpi:hover{border-color:var(--line-2);color:var(--text)}
 .plan-f{margin:12px 0 0;padding-left:18px;color:#C9C6D8;font-size:14px}
 .pay-info{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;padding:12px;border-radius:var(--r);background:var(--bg-2);border:1px solid var(--line-2);margin-bottom:12px}
 .pay-info pre{flex:1;min-width:0;margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;color:#fff}
+
+/* Müşteri, rezervasyon, fiş */
+.cust-pick{display:flex;flex-direction:column;gap:6px;max-height:50vh;overflow:auto}
+.pick-row{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:52px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);cursor:pointer;text-align:left}
+.pick-row:hover{border-color:var(--violet-2)}
+.cust-chosen{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--surface-2);border:1px solid rgba(138,115,255,.4)}
+.cust-sel{margin-bottom:6px}
+.cust-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ok-t{color:#9BEBCB}
+.res-list{display:flex;flex-direction:column;gap:10px}
+.res{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;padding:14px 16px}
+.res+.res{margin-top:0}
+.res.cancelled,.res.noshow{opacity:.55}
+.res-time{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:64px;padding:8px;border-radius:12px;background:rgba(111,82,242,.14);font-size:20px;font-weight:600;color:#fff}
+.res-time small{font-size:11px;color:var(--muted)}
+.res-acts{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.day-nav{gap:6px}
+.day-title{font-size:16px;margin-left:6px;text-transform:none}
+.res-badge{display:flex;align-items:center;gap:6px;font-size:14px!important;color:#FFD596!important;font-weight:500}
+.receipt{max-width:340px;margin:0 auto}
 
 /* Modal */
 .modal{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:24px;animation:fade .18s ease both}
@@ -409,6 +431,8 @@ input[type=date].inp,input[type=time].inp{color-scheme:dark}
   .tc-sub{flex-wrap:wrap;font-size:13px}.tc-tags{display:none}
   .tc-btn{min-height:34px;font-size:12.5px;gap:4px}
   .edit-bar .grow{flex-basis:100%}
+  .res{grid-template-columns:auto 1fr}
+  .res-acts{grid-column:1/-1;justify-content:flex-start}
   .grid2{grid-template-columns:1fr}
   .modal{padding:0;place-items:end stretch}
   .m-box,.m-box.wide{width:100%;max-height:92vh;max-height:92dvh;border-radius:20px 20px 0 0;border-bottom:0;animation:up .25s var(--ease) both}

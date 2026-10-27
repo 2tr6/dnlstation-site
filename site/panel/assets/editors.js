@@ -98,7 +98,8 @@ export function productEditors(S) {
       field('Ürün adı', inp('name', { maxlength: 60, value: p ? p.name : '', required: true, autofocus: true })),
       h('div', { class: 'grid2' },
         field('Kategori', inp('category', { maxlength: 40, value: p ? p.category : '', placeholder: 'ör. İçecek', list: 'cat-list' })),
-        field('Fiyat (₺)', moneyInp('price', p ? p.price_cents : null))),
+        field('Satış fiyatı (₺)', moneyInp('price', p ? p.price_cents : null))),
+      field('Alış fiyatı (₺)', moneyInp('cost', p ? p.cost_cents : null, { placeholder: 'İsteğe bağlı' }), 'Girerseniz raporlarda kâr hesaplanır.'),
       h('datalist', { id: 'cat-list' }, Array.from(new Set(products.map((x) => x.category))).map((c) => h('option', { value: c }))),
       toggle('track_stock', 'Stok takibi yap', p ? p.track_stock : false),
       h('div', { class: 'grid2 stock-fields' },
@@ -120,6 +121,7 @@ export function productEditors(S) {
         const price = inputToCents(fd.get('price'));
         const body = {
           name: fd.get('name'), category: fd.get('category'), price: Number.isFinite(price) && price !== null ? moneyStr(price) : String(fd.get('price') || ''),
+          cost: (() => { const c = inputToCents(fd.get('cost')); return c === null ? null : (Number.isFinite(c) ? moneyStr(c) : String(fd.get('cost'))); })(),
           track_stock: ts.checked, low_stock: parseInt(fd.get('low_stock') || '0', 10) || 0, is_active: p ? f.querySelector('[name=is_active]').checked : true,
         };
         if (!p) body.initial_stock = parseInt(fd.get('initial_stock') || '0', 10) || 0;

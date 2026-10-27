@@ -36,7 +36,7 @@ final class MailTemplate
         if ($note) {
             $text .= "\n\n" . $note;
         }
-        $text .= "\n\n—\nDNL Station · PlayStation ve oyun salonları için yönetim paneli\n$site";
+        $text .= "\n\n—\nDNL Station · PlayStation ve oyun salonları için yönetim paneli\n$site\nDestek: WhatsApp +90 537 762 07 08 · support@dnlstation.com.tr";
 
         $p = static fn(string $s): string => '<p style="margin:0 0 16px;font:400 16px/1.65 -apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;color:#C9C6D8;">' . $e($s) . '</p>';
         $button = '';
@@ -70,6 +70,7 @@ final class MailTemplate
             . '<tr><td align="center" style="padding:24px 12px 0;font:400 12.5px/1.7 -apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Arial,sans-serif;color:#6E6B80;">'
             . 'DNL Station · PlayStation ve oyun salonları için yönetim paneli<br>'
             . '<a href="' . $e($site) . '" style="color:#9A97AB;text-decoration:none;">' . $e(preg_replace('#^https?://#', '', $site) ?? $site) . '</a> · <a href="https://www.instagram.com/dnlstation/" style="color:#9A97AB;text-decoration:none;">@dnlstation</a><br>'
+            . 'Destek: <a href="https://wa.me/905377620708" style="color:#9A97AB;text-decoration:none;">WhatsApp +90 537 762 07 08</a> · <a href="mailto:support@dnlstation.com.tr" style="color:#9A97AB;text-decoration:none;">support@dnlstation.com.tr</a><br>'
             . '<span style="color:#55525F;">Bu e-posta hesabınızla ilgili bir işlem nedeniyle gönderildi. © 2026 DNL Station · Bir YataGirişim Markasıdır.</span>'
             . '</td></tr></table></td></tr></table></body></html>';
         return [$text, $html];

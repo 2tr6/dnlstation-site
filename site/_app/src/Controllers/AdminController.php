@@ -22,20 +22,21 @@ use Dnl\Services\SystemSettings;
  */
 final class AdminController
 {
-    private const STATES = ['all', 'trial', 'active', 'expired', 'suspended', 'expiring'];
+    private const STATES = ['all', 'trial', 'active', 'expired', 'suspended', 'expiring', 'lifetime'];
 
     private static function stateSql(string $state, array &$p): string
     {
         $p['now'] = Db::now();
         $notPaid = '(b.paid_until IS NULL OR b.paid_until <= :now)';
         switch ($state) {
-            case 'trial': return " AND b.suspended_at IS NULL AND $notPaid AND b.trial_ends_at > :now";
-            case 'active': return ' AND b.suspended_at IS NULL AND b.paid_until > :now';
-            case 'expired': return " AND b.suspended_at IS NULL AND $notPaid AND b.trial_ends_at <= :now";
+            case 'trial': return " AND b.suspended_at IS NULL AND b.lifetime = 0 AND $notPaid AND b.trial_ends_at > :now";
+            case 'active': return ' AND b.suspended_at IS NULL AND (b.paid_until > :now OR b.lifetime = 1)';
+            case 'expired': return " AND b.suspended_at IS NULL AND b.lifetime = 0 AND $notPaid AND b.trial_ends_at <= :now";
+            case 'lifetime': unset($p['now']); return ' AND b.lifetime = 1';
             case 'suspended': unset($p['now']); return ' AND b.suspended_at IS NOT NULL';
             case 'expiring':
                 $p['soon'] = gmdate('Y-m-d H:i:s', time() + 7 * 86400);
-                return " AND b.suspended_at IS NULL AND ((b.paid_until > :now AND b.paid_until <= :soon) OR ($notPaid AND b.trial_ends_at > :now AND b.trial_ends_at <= :soon))";
+                return " AND b.suspended_at IS NULL AND b.lifetime = 0 AND ((b.paid_until > :now AND b.paid_until <= :soon) OR ($notPaid AND b.trial_ends_at > :now AND b.trial_ends_at <= :soon))";
             default: unset($p['now']); return '';
         }
     }
@@ -52,6 +53,11 @@ final class AdminController
             'suspended_at' => Db::iso($b['suspended_at']), 'suspend_reason' => $b['suspend_reason'],
             'created_at' => Db::iso($b['created_at']), 'last_login_at' => Db::iso($b['last_login'] ?? null),
             'tables' => isset($b['tables']) ? (int)$b['tables'] : null,
+            'lifetime' => (int)($b['lifetime'] ?? 0) === 1,
+            'max_tables_override' => isset($b['max_tables_override']) && $b['max_tables_override'] !== null ? (int)$b['max_tables_override'] : null,
+            'max_staff_override' => isset($b['max_staff_override']) && $b['max_staff_override'] !== null ? (int)$b['max_staff_override'] : null,
+            'max_tables' => Subscription::limit($b, 'max_tables'),
+            'max_staff' => Subscription::limit($b, 'max_staff'),
         ];
     }
 
@@ -84,7 +90,9 @@ final class AdminController
             FROM businesses b LEFT JOIN users u ON u.business_id = b.id AND u.role = 'owner' WHERE 1=1 $w ORDER BY b.id DESC LIMIT 20", $p);
         $activeToday = (int)Db::value('SELECT COUNT(DISTINCT business_id) FROM users WHERE last_login_at >= :d', ['d' => gmdate('Y-m-d H:i:s', time() - 86400)]);
         return [
-            'counts' => ['all' => $c('all'), 'trial' => $c('trial'), 'active' => $c('active'), 'expired' => $c('expired'), 'suspended' => $c('suspended'), 'expiring' => $c('expiring')],
+            'counts' => ['all' => $c('all'), 'trial' => $c('trial'), 'active' => $c('active'), 'expired' => $c('expired'), 'suspended' => $c('suspended'), 'expiring' => $c('expiring'), 'lifetime' => $c('lifetime')],
+            'signups' => self::signupSeries(30),
+            'alerts' => AdminSystemController::alerts(),
             'new_7d' => (int)Db::value('SELECT COUNT(*) FROM businesses WHERE created_at >= :d', ['d' => $d7]),
             'new_30d' => (int)Db::value('SELECT COUNT(*) FROM businesses WHERE created_at >= :d', ['d' => $d30]),
             'active_24h' => $activeToday,
@@ -149,8 +157,16 @@ final class AdminController
                 'tickets_30d' => (int)Db::value("SELECT COUNT(*) FROM tickets WHERE business_id = :b AND status = 'paid' AND closed_at >= :d", ['b' => $id, 'd' => $d30]),
                 'revenue_30d_cents' => (int)Db::value('SELECT COALESCE(SUM(amount_cents),0) FROM payments WHERE business_id = :b AND voided_at IS NULL AND created_at >= :d', ['b' => $id, 'd' => $d30]),
                 'last_activity' => Db::iso(Db::value('SELECT MAX(created_at) FROM audit_logs WHERE business_id = :b', ['b' => $id])),
+                'customers' => (int)Db::value('SELECT COUNT(*) FROM customers WHERE business_id = :b', ['b' => $id]),
+                'staff' => (int)Db::value("SELECT COUNT(*) FROM users WHERE business_id = :b AND role <> 'owner' AND is_active = 1", ['b' => $id]),
+                'revenue_all_cents' => (int)Db::value('SELECT COALESCE(SUM(amount_cents),0) FROM payments WHERE business_id = :b AND voided_at IS NULL', ['b' => $id]),
+                'open_sessions' => (int)Db::value("SELECT COUNT(*) FROM play_sessions WHERE business_id = :b AND status = 'active'", ['b' => $id]),
             ],
             'payments' => self::paymentRows('WHERE p.business_id = :b', ['b' => $id], 100),
+            'emails' => array_map(static fn($r) => ['to' => $r['to_email'], 'subject' => $r['subject'], 'kind' => $r['kind'], 'status' => $r['status'], 'error' => $r['error'], 'at' => Db::iso($r['created_at'])],
+                Db::all('SELECT * FROM email_log WHERE business_id = :b ORDER BY id DESC LIMIT 30', ['b' => $id])),
+            'security' => array_map(static fn($r) => ['type' => $r['type'], 'actor' => $r['actor'], 'meta' => $r['meta'], 'at' => Db::iso($r['created_at'])],
+                Db::all('SELECT * FROM security_events WHERE business_id = :b ORDER BY id DESC LIMIT 30', ['b' => $id])),
             'log' => self::auditRows('WHERE (a.entity = \'business\' AND a.entity_id = :b) OR (a.entity = \'user\' AND a.entity_id IN (SELECT id FROM users WHERE business_id = :b2))', ['b' => $id, 'b2' => $id], 50),
         ];
     }
@@ -356,7 +372,7 @@ final class AdminController
             case 'send_reset':
                 Tokens::revokeAll($id, 'reset');
                 [$sel, $val] = Tokens::create($id, 'reset', 3600);
-                \Dnl\Services\Emails::reset($u['email'], $u['name'], Mailer::url('/sifre-yenile/#t=' . $sel . '.' . $val), true);
+                \Dnl\Services\Emails::reset($u['email'], $u['name'], Mailer::url('/sifre-yenile/#t=' . $sel . '.' . $val), true, (int)$u['business_id']);
                 break;
             case 'resend_verify':
                 if ($u['email_verified_at'] !== null) {
@@ -364,7 +380,7 @@ final class AdminController
                 }
                 Tokens::revokeAll($id, 'verify');
                 [$sel, $val] = Tokens::create($id, 'verify', 172800);
-                \Dnl\Services\Emails::verify($u['email'], $u['name'], Mailer::url('/dogrula/#t=' . $sel . '.' . $val));
+                \Dnl\Services\Emails::verify($u['email'], $u['name'], Mailer::url('/dogrula/#t=' . $sel . '.' . $val), (int)$u['business_id']);
                 break;
         }
         AdminAuth::log($aid, 'user.' . $action, 'user', $id, ['business' => (int)$u['business_id']]);
@@ -460,5 +476,202 @@ final class AdminController
         $v = str_replace("\r\n", "\n", $v);
         $v = preg_replace('/[\x00-\x09\x0B-\x1F\x7F]/u', '', $v) ?? '';
         return mb_substr(trim($v), 0, $max);
+    }
+
+    private static function signupSeries(int $days): array
+    {
+        $tz = new \DateTimeZone('Europe/Istanbul');
+        $from = (new \DateTimeImmutable('now', $tz))->setTime(0, 0)->modify('-' . ($days - 1) . ' day');
+        $cnt = [];
+        foreach (Db::all('SELECT created_at FROM businesses WHERE created_at >= :f', ['f' => $from->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s')]) as $r) {
+            $k = (new \DateTimeImmutable($r['created_at'], new \DateTimeZone('UTC')))->setTimezone($tz)->format('Y-m-d');
+            $cnt[$k] = ($cnt[$k] ?? 0) + 1;
+        }
+        $out = [];
+        for ($i = 0; $i < $days; $i++) {
+            $k = $from->modify("+$i day")->format('Y-m-d');
+            $out[] = ['date' => $k, 'count' => $cnt[$k] ?? 0];
+        }
+        return $out;
+    }
+
+    /** İşletmenin panel işlem kaydı (destek için) */
+    public static function activity(array $prm): array
+    {
+        AdminAuth::require();
+        $b = self::business($prm['id']);
+        $before = (int)(Http::query('before') ?? 0);
+        $rows = Db::all('SELECT a.*, u.name AS user_name FROM audit_logs a LEFT JOIN users u ON u.id = a.user_id WHERE a.business_id = :b' . ($before > 0 ? ' AND a.id < :x' : '') . ' ORDER BY a.id DESC LIMIT 100', $before > 0 ? ['b' => $b['id'], 'x' => $before] : ['b' => $b['id']]);
+        return ['items' => array_map(static fn($r) => ['id' => (int)$r['id'], 'action' => $r['action'], 'entity' => $r['entity'], 'meta' => json_decode((string)$r['meta'], true), 'user' => $r['user_name'], 'at' => Db::iso($r['created_at'])], $rows)];
+    }
+
+    /** Ömür boyu üyelik aç/kapat */
+    public static function setLifetime(array $prm): array
+    {
+        $aid = AdminAuth::id();
+        $b = self::business($prm['id']);
+        $in = new Input(Http::json());
+        $on = $in->bool('on');
+        $reason = $in->str('reason', 3, 200, true, 'Neden');
+        $in->check();
+        Db::exec('UPDATE businesses SET lifetime = :l, updated_at = :n WHERE id = :id', ['l' => $on ? 1 : 0, 'n' => Db::now(), 'id' => $b['id']]);
+        AdminAuth::log($aid, $on ? 'business.lifetime_on' : 'business.lifetime_off', 'business', (int)$b['id'], ['reason' => $reason]);
+        return self::business_detail($prm);
+    }
+
+    /** İşletmeye özel masa/personel sınırı (boş = paketin sınırı) */
+    public static function setLimits(array $prm): array
+    {
+        $aid = AdminAuth::id();
+        $b = self::business($prm['id']);
+        $in = new Input(Http::json());
+        $t = $in->intOrNull('max_tables', 1, 1000, 'Masa sınırı');
+        $st = $in->intOrNull('max_staff', 0, 500, 'Personel sınırı');
+        $in->check();
+        Db::exec('UPDATE businesses SET max_tables_override = :t, max_staff_override = :s, updated_at = :n WHERE id = :id', ['t' => $t, 's' => $st, 'n' => Db::now(), 'id' => $b['id']]);
+        AdminAuth::log($aid, 'business.limits', 'business', (int)$b['id'], ['tables' => $t, 'staff' => $st]);
+        return self::business_detail($prm);
+    }
+
+    public static function updateBusiness(array $prm): array
+    {
+        $aid = AdminAuth::id();
+        $b = self::business($prm['id']);
+        $in = new Input(Http::json());
+        $name = $in->str('name', 2, 80, true, 'İşletme adı');
+        $phone = $in->phone('phone', false);
+        $in->check();
+        Db::exec('UPDATE businesses SET name = :nm, phone = :p, updated_at = :n WHERE id = :id', ['nm' => $name, 'p' => $phone, 'n' => Db::now(), 'id' => $b['id']]);
+        AdminAuth::log($aid, 'business.info', 'business', (int)$b['id'], ['name' => [$b['name'], $name]]);
+        return self::business_detail($prm);
+    }
+
+    /** Kullanıcının giriş e-postasını değiştirir (oturumları kapatır, yeni adrese doğrulama gönderir) */
+    public static function changeUserEmail(array $prm): array
+    {
+        $aid = AdminAuth::id();
+        $u = self::user($prm['id']);
+        $in = new Input(Http::json());
+        $email = $in->email('email');
+        $in->check();
+        try {
+            Db::exec('UPDATE users SET email = :e, email_verified_at = NULL, updated_at = :n WHERE id = :id', ['e' => $email, 'n' => Db::now(), 'id' => $u['id']]);
+        } catch (\PDOException $e) {
+            if (Db::isDuplicate($e)) {
+                throw new HttpError(422, 'Bu e-posta başka bir hesapta kullanılıyor.', 'validation', ['email' => 'Bu e-posta başka bir hesapta kullanılıyor.']);
+            }
+            throw $e;
+        }
+        Auth::invalidateAllSessions((int)$u['id']);
+        Tokens::revokeAll((int)$u['id'], 'verify');
+        [$sel, $val] = Tokens::create((int)$u['id'], 'verify', 172800);
+        \Dnl\Services\Emails::verify($email, $u['name'], Mailer::url('/dogrula/#t=' . $sel . '.' . $val), (int)$u['business_id']);
+        AdminAuth::log($aid, 'user.email_changed', 'user', (int)$u['id'], ['business' => (int)$u['business_id'], 'from' => $u['email'], 'to' => $email]);
+        return self::business_detail(['id' => (int)$u['business_id']]);
+    }
+
+    /** İşletme sahipliğini başka bir kullanıcıya devreder (eski sahip müdür olur) */
+    public static function makeOwner(array $prm): array
+    {
+        $aid = AdminAuth::id();
+        $u = self::user($prm['id']);
+        if ($u['role'] === 'owner') {
+            throw new HttpError(409, 'Bu kullanıcı zaten işletme sahibi.', 'conflict');
+        }
+        if ((int)$u['is_active'] !== 1) {
+            throw new HttpError(409, 'Pasif kullanıcı sahip yapılamaz.', 'inactive');
+        }
+        $bid = (int)$u['business_id'];
+        $old = Db::one("SELECT id FROM users WHERE business_id = :b AND role = 'owner' LIMIT 1", ['b' => $bid]);
+        Db::tx(static function () use ($u, $old) {
+            if ($old) {
+                Db::exec("UPDATE users SET role = 'manager', session_version = session_version + 1, updated_at = :n WHERE id = :id", ['n' => Db::now(), 'id' => $old['id']]);
+            }
+            Db::exec("UPDATE users SET role = 'owner', session_version = session_version + 1, updated_at = :n WHERE id = :id", ['n' => Db::now(), 'id' => $u['id']]);
+        });
+        AdminAuth::log($aid, 'business.owner_transfer', 'business', $bid, ['to' => (int)$u['id'], 'from' => $old ? (int)$old['id'] : null]);
+        return self::business_detail(['id' => $bid]);
+    }
+
+    /** İşletme sahibine panelden e-posta */
+    public static function emailBusiness(array $prm): array
+    {
+        $aid = AdminAuth::id();
+        $b = self::business($prm['id']);
+        $in = new Input(Http::json());
+        $subject = $in->str('subject', 3, 120, true, 'Konu');
+        $msg = (string)(Http::json()['message'] ?? '');
+        $msg = mb_substr(trim(preg_replace('/[\x00-\x09\x0B-\x1F\x7F]/u', '', str_replace("\r\n", "\n", $msg)) ?? ''), 0, 4000);
+        if (mb_strlen($msg) < 5) {
+            $in->error('message', 'Mesaj en az 5 karakter olmalı.');
+        }
+        $in->check();
+        $owner = Db::one("SELECT name, email FROM users WHERE business_id = :b AND role = 'owner' LIMIT 1", ['b' => $b['id']]);
+        if (!$owner) {
+            throw new HttpError(404, 'İşletme sahibi bulunamadı.', 'not_found');
+        }
+        $ok = \Dnl\Services\Emails::adminMessage($owner['email'], $owner['name'], $subject, $msg, (int)$b['id']);
+        AdminAuth::log($aid, 'business.email', 'business', (int)$b['id'], ['subject' => $subject, 'sent' => $ok]);
+        if (!$ok) {
+            throw new HttpError(502, 'E-posta gönderilemedi: ' . (Mailer::$lastError ?: 'bilinmeyen hata'), 'mail_failed');
+        }
+        return ['ok' => true];
+    }
+
+    /** KVKK / yedek: işletmenin tüm verisi JSON (şifre ve anahtarlar hariç) */
+    public static function export(array $prm): never
+    {
+        $aid = AdminAuth::id();
+        $b = self::business($prm['id']);
+        $bid = (int)$b['id'];
+        unset($b['display_token_hash']);
+        $q = static fn(string $t, string $cols = '*') => Db::all("SELECT $cols FROM $t WHERE business_id = :b ORDER BY id", ['b' => $bid]);
+        $data = [
+            'exported_at' => gmdate('c'), 'business' => $b,
+            'users' => $q('users', 'id, name, email, phone, role, is_active, email_verified_at, last_login_at, created_at'),
+            'table_types' => $q('table_types'), 'tables' => $q('game_tables'), 'products' => $q('products'), 'customers' => $q('customers'),
+            'customer_moves' => $q('customer_moves'), 'shifts' => $q('shifts'), 'tickets' => $q('tickets'), 'ticket_items' => $q('ticket_items'),
+            'payments' => $q('payments'), 'sessions' => $q('play_sessions'), 'expenses' => $q('expenses'), 'reservations' => $q('reservations'), 'stock_moves' => $q('stock_moves'),
+            'audit_logs' => $q('audit_logs', 'id, user_id, action, entity, entity_id, meta, created_at'),
+        ];
+        AdminAuth::log($aid, 'business.export', 'business', $bid);
+        header('Content-Type: application/json; charset=utf-8');
+        header('Content-Disposition: attachment; filename="dnlstation-isletme-' . $bid . '-' . gmdate('Ymd') . '.json"');
+        header('Cache-Control: no-store');
+        header('X-Content-Type-Options: nosniff');
+        echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        exit;
+    }
+
+    /** İşletmeyi tüm verileriyle kalıcı siler. Onay için işletme adı birebir yazılmalı ve hesap önceden dondurulmuş olmalı. */
+    public static function deleteBusiness(array $prm): array
+    {
+        $aid = AdminAuth::id();
+        $b = self::business($prm['id']);
+        $in = new Input(Http::json());
+        $confirm = $in->str('confirm_name', 1, 80, true, 'Onay');
+        $in->check();
+        if ($b['suspended_at'] === null) {
+            throw new HttpError(409, 'Silmeden önce işletmeyi dondurun (yanlışlıkla silmeye karşı güvenlik adımı).', 'not_suspended');
+        }
+        if ($confirm !== $b['name']) {
+            throw new HttpError(422, 'Onay için işletme adını birebir yazın.', 'validation', ['confirm_name' => 'İşletme adı eşleşmiyor.']);
+        }
+        $bid = (int)$b['id'];
+        Db::tx(static function () use ($bid) {
+            $uids = array_map('intval', array_column(Db::all('SELECT id FROM users WHERE business_id = :b', ['b' => $bid]), 'id'));
+            foreach ($uids as $u) {
+                Db::exec('DELETE FROM auth_tokens WHERE user_id = :u', ['u' => $u]);
+            }
+            Db::exec('DELETE FROM session_segments WHERE session_id IN (SELECT id FROM play_sessions WHERE business_id = :b)', ['b' => $bid]);
+            foreach (['play_sessions', 'payments', 'ticket_items', 'customer_moves', 'customers', 'expenses', 'reservations', 'stock_moves', 'tickets', 'products', 'shifts', 'game_tables', 'table_types', 'audit_logs', 'users'] as $t) {
+                Db::exec("DELETE FROM $t WHERE business_id = :b", ['b' => $bid]);
+            }
+            Db::exec('UPDATE email_log SET business_id = NULL WHERE business_id = :b', ['b' => $bid]);
+            Db::exec('UPDATE security_events SET business_id = NULL WHERE business_id = :b', ['b' => $bid]);
+            Db::exec('DELETE FROM businesses WHERE id = :b', ['b' => $bid]);
+        });
+        AdminAuth::log($aid, 'business.deleted', 'business', $bid, ['name' => $b['name']]);
+        return ['deleted' => true];
     }
 }

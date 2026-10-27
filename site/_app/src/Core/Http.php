@@ -87,6 +87,7 @@ final class Http
             $op = parse_url($origin, PHP_URL_PORT);
             $originHost = $oh . ($op ? ':' . $op : '');
             if (strcasecmp($originHost, $host) !== 0) {
+                SecurityLog::add('bad_origin', '', null, mb_substr((string)$origin, 0, 120));
                 throw new HttpError(403, 'İzin verilmeyen kaynak.', 'bad_origin');
             }
         }

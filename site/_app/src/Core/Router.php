@@ -77,6 +77,12 @@ final class Router
                 }
             }
 
+            // Bakım modu: yönetici ve sistem uçları dışındaki tüm istekler beklemeye alınır
+            if (!str_starts_with($path, '/admin') && !str_starts_with($path, '/system') && \Dnl\Services\SystemSettings::get('maintenance')) {
+                $msg = trim((string)\Dnl\Services\SystemSettings::get('maintenance_message'));
+                throw new HttpError(503, $msg !== '' ? $msg : 'Kısa bir bakım çalışması yapıyoruz. Lütfen birkaç dakika sonra tekrar deneyin.', 'maintenance');
+            }
+
             if ($opts['session'] ?? true) {
                 Session::start();
             }

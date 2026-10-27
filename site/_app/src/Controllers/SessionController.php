@@ -153,11 +153,11 @@ final class SessionController
     {
         [, $b] = Perm::need('tables.operate');
         $bid = (int)$b['id'];
-        $rows = Db::all("SELECT s.id, s.status, s.ended_at, g.name AS table_name, t.total_cents, t.discount_cents, t.type, t.shift_id, u.name AS closed_by
+        $rows = Db::all("SELECT s.id, s.ticket_id, s.status, s.ended_at, g.name AS table_name, t.total_cents, t.discount_cents, t.type, t.shift_id, u.name AS closed_by
             FROM play_sessions s JOIN tickets t ON t.id = s.ticket_id JOIN game_tables g ON g.id = s.table_id LEFT JOIN users u ON u.id = s.closed_by
             WHERE s.business_id = :b AND s.status IN ('closed','cancelled') ORDER BY s.ended_at DESC LIMIT 15", ['b' => $bid]);
         return ['items' => array_map(static fn($r) => [
-            'id' => (int)$r['id'], 'status' => $r['status'], 'ended_at' => Db::iso($r['ended_at']), 'table_name' => $r['table_name'],
+            'id' => (int)$r['id'], 'ticket_id' => (int)$r['ticket_id'], 'status' => $r['status'], 'ended_at' => Db::iso($r['ended_at']), 'table_name' => $r['table_name'],
             'total_cents' => (int)$r['total_cents'], 'discount_cents' => (int)$r['discount_cents'], 'closed_by' => $r['closed_by'],
             'can_reopen' => $r['status'] === 'closed' && $r['shift_id'] !== null && (int)$r['shift_id'] === (int)$b['open_shift_id'] && time() - strtotime($r['ended_at'] . ' UTC') <= 1800,
         ], $rows)];

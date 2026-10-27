@@ -34,6 +34,7 @@ final class ProductController
             'category' => $in->str('category', 1, 40, false, 'Kategori') ?: 'Genel',
             'name' => $in->str('name', 1, 60, true, 'Ürün adı'),
             'price_cents' => (int)$in->money('price', true, 10000000, 'Fiyat'),
+            'cost_cents' => $in->money('cost', false, 10000000, 'Alış fiyatı'),
             'track_stock' => $in->bool('track_stock'),
             'low_stock' => (int)$in->int('low_stock', 0, 100000, 0, 'Kritik stok'),
             'sort' => (int)$in->int('sort', 0, 9999, 0, 'Sıra'),
