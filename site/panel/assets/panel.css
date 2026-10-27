@@ -476,7 +476,7 @@ input[type=date].inp,input[type=time].inp{color-scheme:dark}
 .nav-item:active { transform: scale(.97); }
 @media (max-width: 860px) {
   .tabs .nav-item { position: relative; }
-  .tabs .nav-item span { font-size: 11px; font-weight: 600; letter-spacing: .01em; }
+  .tabs .nav-item span { display: block !important; font-size: 11px; font-weight: 600; letter-spacing: .01em; }
   .tabs .nav-item.active::before { content: ''; position: absolute; top: 0; left: 28%; right: 28%; height: 3px; border-radius: 0 0 3px 3px; background: var(--lilac); }
 }
 @media (prefers-reduced-motion: reduce) {
