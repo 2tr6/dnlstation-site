@@ -8,6 +8,13 @@ Panel kodları GitHub'a her gönderimde otomatik olarak `public_html`'e yükleni
    Ayar dosyası ve anahtarlar otomatik oluşturulur, tablolar kurulur. Tekrar çalıştırmak güvenlidir
    (ileride şema güncellemesi gerekirse aynı komut yeterli).
 
+## Ana yönetici hesabı
+cPanel → Terminal → `bash public_html/_app/yonetici.sh`
+- **1** yeni yönetici, **2** şifre sıfırlama, **3** Authenticator sıfırlama (telefon kaybolursa).
+- Araç önce bekleyen veritabanı güncellemelerini de uygular.
+- Giriş: `https://dnlstation.com.tr/yonetim/` → şifre → ilk girişte Authenticator kurulumu → 6 haneli kod.
+- Yönetici hesabı web'den oluşturulamaz; yalnızca sunucuya erişimi olan kişi oluşturabilir.
+
 Aşağıdaki adımlar elle kurulum içindir.
 
 ## 1. MySQL veritabanı

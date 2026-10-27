@@ -146,6 +146,10 @@ final class AuthController
             }
             throw new HttpError(401, self::GENERIC_LOGIN_ERROR, 'invalid_credentials');
         }
+        $susp = Db::value('SELECT suspended_at FROM businesses WHERE id = :b', ['b' => $user['business_id']]);
+        if ($susp !== null) {
+            throw new HttpError(403, 'İşletme hesabınız askıya alındı. Destek için bizimle iletişime geçin.', 'suspended');
+        }
         if (Config::get('require_email_verification') && $user['email_verified_at'] === null) {
             throw new HttpError(403, 'Giriş yapmadan önce e-posta adresinizi doğrulayın. Doğrulama bağlantısı e-postanıza gönderildi.', 'email_unverified');
         }
@@ -276,6 +280,8 @@ final class AuthController
                 'warn_minutes' => (int)($settings['warn_minutes'] ?? 5),
             ],
             'subscription' => Subscription::status($b),
+            'suspended' => ($b['suspended_at'] ?? null) !== null,
+            'announcement' => \Dnl\Controllers\AdminController::currentAnnouncement(),
             'permissions' => Perm::list($u, $b),
             'csrf' => Session::csrf(),
             'server_time' => gmdate('c'),

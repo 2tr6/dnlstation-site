@@ -39,6 +39,7 @@ setAuthLost((why) => {
     if (location.hash !== '#/hesap') location.hash = '#/hesap';
     return;
   }
+  if (why === 'suspended') { suspendedScreen(); return; }
   if (authLostShown) return;
   authLostShown = true;
   location.replace('/giris/?oturum=bitti');
@@ -73,6 +74,24 @@ async function logout() {
   location.replace('/giris/');
 }
 
+function suspendedScreen() {
+  app.className = 'boot-err'; app.removeAttribute('aria-busy');
+  fill(app, h('div', { class: 'wm' }, 'DNL'), h('h1', null, 'İşletme hesabınız askıya alındı'),
+    h('p', { class: 'muted' }, 'Verileriniz güvende. Hesabınızı yeniden açmak için bizimle iletişime geçin.'),
+    h('a', { class: 'btn btn-ghost', href: 'https://www.instagram.com/dnlstation/', target: '_blank', rel: 'noopener' }, 'İletişim'),
+    h('button', { class: 'btn btn-primary', type: 'button', onclick: logout }, 'Çıkış yap'));
+}
+
+function announceBanner() {
+  const a = state.me.announcement;
+  if (!a || !a.text) return null;
+  const key = 'dnl_ann_' + a.id;
+  try { if (localStorage.getItem(key)) return null; } catch { /* depolama yok */ }
+  const el = h('div', { class: 'banner ' + (a.level === 'warn' ? 'warn' : 'info') }, icon(a.level === 'warn' ? 'alert' : 'clock', 18), h('span', { class: 'grow' }, a.text),
+    h('button', { class: 'icon-btn sm', type: 'button', 'aria-label': 'Duyuruyu kapat', onclick: () => { try { localStorage.setItem(key, '1'); } catch { /* yok */ } el.remove(); } }, icon('x', 16)));
+  return el;
+}
+
 function subBanner() {
   const s = state.me.subscription;
   if (s.state === 'expired') {
@@ -104,7 +123,7 @@ function shell() {
   clear(app);
   app.className = 'shell';
   app.removeAttribute('aria-busy');
-  add(app, side, h('div', { class: 'col' }, subBanner(), top, main), tabs);
+  add(app, side, h('div', { class: 'col' }, subBanner(), announceBanner(), top, main), tabs);
   updateShiftChip();
 }
 
@@ -150,6 +169,7 @@ async function boot() {
     fill(app, h('div', { class: 'boot-err' }, h('p', null, e.message || 'Panel yüklenemedi.'), h('button', { class: 'btn btn-primary', onclick: () => location.reload() }, 'Tekrar dene')));
     return;
   }
+  if (state.me.suspended) { suspendedScreen(); return; }
   shell();
   window.addEventListener('hashchange', route);
   document.addEventListener('pointerdown', unlockAudio, { once: true });

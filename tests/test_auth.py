@@ -10,7 +10,7 @@ try:
     r = requests.post(BASE + '/api/system/migrate', headers={'X-Migrate-Token': 'yanlis'})
     check('Yanlış migrate anahtarı reddedilir (403)', r.status_code == 403, r.text)
     out = srv.migrate()
-    check('Migration çalışır', out['data']['applied'] == ['001_init'], out)
+    check('Migration çalışır', out['data']['applied'][:1] == ['001_init'] and '002_admin' in out['data']['applied'], out)
     check('İkinci migration boş döner', srv.migrate()['data']['applied'] == [])
     r = requests.get(BASE + '/_app/bootstrap.php')
     check('_app dizini web’den erişilemez', r.status_code == 403, r.status_code)

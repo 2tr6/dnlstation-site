@@ -1,0 +1,28 @@
+/* DNL Station — yönetim paneli ekleri (panel.css üzerine) */
+.login-wrap{min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:24px 16px;background:radial-gradient(900px 500px at 50% -10%,rgba(111,82,242,.18),transparent 60%),var(--bg)}
+.login-card{width:min(420px,100%);padding:28px 24px;border-radius:20px;background:var(--surface);border:1px solid var(--line-2);box-shadow:0 30px 80px rgba(0,0,0,.45);display:flex;flex-direction:column;gap:10px}
+.login-card .wm{font-size:28px}
+.login-card h1{font-size:24px;margin:2px 0 8px}
+.login-card .banner{border:1px solid;border-radius:var(--r)}
+.code-inp{font-size:28px!important;letter-spacing:.4em;text-align:center}
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;color:#C9C6D8;font-size:14px}
+.secret{font-size:16px!important;letter-spacing:.06em;word-break:break-all}
+.adm-av{background:linear-gradient(135deg,#C9353C,#6F52F2)}
+.biz-list{display:flex;flex-direction:column}
+.biz-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 8px;border-bottom:1px solid var(--line);color:var(--text);border-radius:8px}
+.biz-row:last-child{border-bottom:0}
+.biz-row:hover{background:rgba(255,255,255,.03);color:var(--text)}
+.br-main{display:flex;flex-direction:column;min-width:0}
+.br-main b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.br-main small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.br-meta{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:6px;text-align:right}
+.br-meta small{flex-basis:100%}
+.pager{display:flex;justify-content:center;align-items:center;gap:12px;margin-top:12px}
+.back-link{display:inline-block;margin-bottom:12px;color:var(--muted);font-size:14px}
+.user-acts{display:flex;flex-direction:column;gap:2px}
+.user-acts .hint{margin-top:10px}
+textarea.inp{padding:12px 14px;min-height:88px;resize:vertical;line-height:1.5}
+@media (max-width:760px){
+  .biz-row{flex-direction:column;align-items:flex-start}
+  .br-meta{justify-content:flex-start;text-align:left}
+}

@@ -67,6 +67,16 @@ final class Router
                 throw new HttpError(503, 'Sistem güncelleniyor. Lütfen birkaç dakika sonra tekrar deneyin.', 'maintenance');
             }
 
+            // Ara sıra süresi geçmiş sınır/anahtar kayıtlarını temizle (tablolar şişmesin)
+            if (random_int(1, 200) === 1) {
+                try {
+                    Db::exec('DELETE FROM rate_limits WHERE reset_at < :n', ['n' => Db::now()]);
+                    Db::exec('DELETE FROM auth_tokens WHERE expires_at < :n', ['n' => Db::now()]);
+                } catch (\Throwable $e) {
+                    Log::error($e, 'gc');
+                }
+            }
+
             if ($opts['session'] ?? true) {
                 Session::start();
             }
@@ -79,12 +89,24 @@ final class Router
                 }
             }
 
+            if (!empty($opts['admin'])) {
+                $adm = AdminAuth::require();
+                if ($mutating) {
+                    RateLimiter::enforce('aw:' . $adm['id'], 300, 60, 'Çok hızlı işlem yapılıyor.');
+                }
+            }
+
             if (isset($opts['auth'])) {
                 Auth::require($opts['auth']);
                 $u = Auth::user();
                 // Zorunlu şifre değişikliği bekleyen kullanıcı yalnızca izinli uçlara erişebilir
                 if ((int)$u['must_change_password'] === 1 && empty($opts['allow_pw_change'])) {
                     throw new HttpError(403, 'Devam etmeden önce şifrenizi değiştirmeniz gerekiyor.', 'must_change_password');
+                }
+                // Dondurulan işletme: oturumlar kapatılır, yalnızca durum bilgisi (/me, çıkış) alınabilir
+                $biz = Auth::business();
+                if ($biz !== null && ($biz['suspended_at'] ?? null) !== null && empty($opts['allow_suspended'])) {
+                    throw new HttpError(403, 'İşletme hesabınız askıya alındı. Destek için bizimle iletişime geçin.', 'suspended');
                 }
                 // Hesap başına yazma hızı sınırı (otomasyon/kötüye kullanım koruması)
                 if ($mutating) {

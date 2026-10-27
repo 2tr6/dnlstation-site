@@ -19,11 +19,35 @@ $r->add('GET', '/auth/csrf', fn() => C\AuthController::csrf());
 $r->add('POST', '/auth/register', fn() => C\AuthController::register());
 $r->add('POST', '/auth/login', fn() => C\AuthController::login());
 $r->add('POST', '/auth/logout', fn() => C\AuthController::logout());
+
+// Ana yönetici — ayrı oturum, iki adımlı giriş. Yönetici hesabı yalnızca sunucuda (CLI) oluşturulur.
+$ad = ['admin' => true];
+$r->add('POST', '/admin/auth/login', fn() => C\AdminAuthController::login());
+$r->add('POST', '/admin/auth/verify', fn() => C\AdminAuthController::verify());
+$r->add('POST', '/admin/auth/logout', fn() => C\AdminAuthController::logout());
+$r->add('GET', '/admin/me', fn() => C\AdminAuthController::me(), $ad);
+$r->add('POST', '/admin/account/password', fn() => C\AdminAuthController::changePassword(), $ad);
+$r->add('GET', '/admin/overview', fn() => C\AdminController::overview(), $ad);
+$r->add('GET', '/admin/businesses', fn() => C\AdminController::businesses(), $ad);
+$r->add('GET', '/admin/businesses/{id}', fn($p) => C\AdminController::business_detail($p), $ad);
+$r->add('POST', '/admin/businesses/{id}/plan', fn($p) => C\AdminController::setPlan($p), $ad);
+$r->add('POST', '/admin/businesses/{id}/trial', fn($p) => C\AdminController::extendTrial($p), $ad);
+$r->add('POST', '/admin/businesses/{id}/payments', fn($p) => C\AdminController::addPayment($p), $ad);
+$r->add('POST', '/admin/businesses/{id}/paid-until', fn($p) => C\AdminController::setPaidUntil($p), $ad);
+$r->add('POST', '/admin/businesses/{id}/suspend', fn($p) => C\AdminController::suspend($p), $ad);
+$r->add('POST', '/admin/businesses/{id}/unsuspend', fn($p) => C\AdminController::unsuspend($p), $ad);
+$r->add('POST', '/admin/businesses/{id}/note', fn($p) => C\AdminController::note($p), $ad);
+$r->add('POST', '/admin/users/{id}/action', fn($p) => C\AdminController::userAction($p), $ad);
+$r->add('GET', '/admin/payments', fn() => C\AdminController::payments(), $ad);
+$r->add('POST', '/admin/payments/{id}/void', fn($p) => C\AdminController::voidPayment($p), $ad);
+$r->add('GET', '/admin/audit', fn() => C\AdminController::audit(), $ad);
+$r->add('GET', '/admin/announcement', fn() => C\AdminController::announcement(), $ad);
+$r->add('PUT', '/admin/announcement', fn() => C\AdminController::setAnnouncement(), $ad);
 $r->add('POST', '/auth/forgot', fn() => C\AuthController::forgot());
 $r->add('POST', '/auth/reset', fn() => C\AuthController::reset());
 $r->add('POST', '/auth/verify', fn() => C\AuthController::verify());
 $r->add('POST', '/auth/resend-verification', fn() => C\AuthController::resendVerification(), ['auth' => $all, 'allow_pw_change' => true]);
-$r->add('GET', '/me', fn() => C\AuthController::me(), ['auth' => $all, 'allow_pw_change' => true]);
+$r->add('GET', '/me', fn() => C\AuthController::me(), ['auth' => $all, 'allow_pw_change' => true, 'allow_suspended' => true]);
 $r->add('POST', '/account/password', fn() => C\AuthController::changePassword(), ['auth' => $all, 'allow_pw_change' => true]);
 
 // İşletme paneli — yetki kontrolleri denetleyicilerde Perm::need ile yapılır.

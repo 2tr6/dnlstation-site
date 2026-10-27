@@ -92,6 +92,9 @@ final class SettingsController
             }
             throw new HttpError(401, 'Ekran bağlantısı geçersiz ya da yenilenmiş.', 'invalid_display');
         }
+        if (($b['suspended_at'] ?? null) !== null) {
+            throw new HttpError(401, 'Ekran bağlantısı geçersiz ya da yenilenmiş.', 'invalid_display');
+        }
         $s = self::settings($b);
         $bid = (int)$b['id'];
         $now = time();

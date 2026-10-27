@@ -140,6 +140,7 @@ export async function api(method, path, body) {
   const e = json && json.error ? json.error : { code: 'server_error', message: 'Beklenmeyen bir hata oluştu.' };
   if (res.status === 401) onAuthLost('expired');
   if (res.status === 403 && e.code === 'must_change_password') onAuthLost('must_change');
+  if (res.status === 403 && e.code === 'suspended') onAuthLost('suspended');
   if (res.status === 419) {
     // CSRF anahtarı yenilendi: bir kez yeniden dene
     if (!api._retry) {

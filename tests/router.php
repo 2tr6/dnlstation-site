@@ -15,6 +15,10 @@ if (preg_match('#^/panel/?$#', $uri)) {
     require $root . '/panel/index.php';
     return true;
 }
+if (preg_match('#^/yonetim/?$#', $uri)) {
+    require $root . '/yonetim/index.php';
+    return true;
+}
 $file = $root . $uri;
 if (is_dir($file)) {
     $file = rtrim($file, '/') . '/index.html';
