@@ -551,3 +551,10 @@ a.kpi:hover{border-color:rgba(138,115,255,.38);transform:translateY(-2px);box-sh
 }
 /* Kart içindeki kutu grupları tek satıra sığsın (yalnız kalan kutu olmasın) */
 .card .kpis{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+
+/* Sayfa içi düzen: ardışık tüm bloklar arasında tek tip boşluk (kutular birbirine yapışmaz) */
+.view>*+*{margin-top:16px}
+.view>.kpis{margin:0}
+.view>.kpis+.kpis{margin-top:16px}
+.view>.grid2>*{margin-top:0}
+.view>.grid2{margin-top:0}
