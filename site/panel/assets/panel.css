@@ -476,9 +476,28 @@ input[type=date].inp,input[type=time].inp{color-scheme:dark}
 .nav-item:active { transform: scale(.97); }
 @media (max-width: 860px) {
   .tabs .nav-item { position: relative; }
-  .tabs .nav-item span { font-size: 11px; font-weight: 600; letter-spacing: .01em; }
+  .tabs .nav-item span { display: block !important; font-size: 11px; font-weight: 600; letter-spacing: .01em; }
   .tabs .nav-item.active::before { content: ''; position: absolute; top: 0; left: 28%; right: 28%; height: 3px; border-radius: 0 0 3px 3px; background: var(--lilac); }
 }
 @media (prefers-reduced-motion: reduce) {
   .main > *, .nav-item { animation: none !important; transition: none !important; }
+}
+
+/* ---- Yenileme: kart derinliği, düğme ve liste geri bildirimi, sakin geçişler (her iki panel) ---- */
+.card{background:linear-gradient(180deg,rgba(255,255,255,.028),rgba(255,255,255,0) 42%),var(--surface);box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 14px 34px -26px rgba(0,0,0,.9);transition:border-color .2s var(--ease)}
+.card:hover{border-color:rgba(255,255,255,.12)}
+.btn{transition:background-color .15s var(--ease),border-color .15s var(--ease),color .15s var(--ease),transform .12s var(--ease),box-shadow .2s var(--ease)}
+.btn:not(:disabled):active{transform:translateY(1px) scale(.985)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn-primary{box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 8px 20px -10px rgba(111,82,242,.75)}
+.btn-primary:hover{box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 10px 24px -10px rgba(111,82,242,.9)}
+.nav-item{transition:background-color .18s var(--ease),color .18s var(--ease)}
+.nav-item:hover{background:rgba(255,255,255,.04);color:#fff}
+.list li.click{transition:background-color .15s var(--ease)}
+@media (max-width:860px){
+  .tabs{background:rgba(12,12,17,.9);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--line)}
+}
+@media (prefers-reduced-motion:reduce){
+  .card,.btn,.nav-item{transition:none !important}
+  .btn:not(:disabled):active{transform:none}
 }
