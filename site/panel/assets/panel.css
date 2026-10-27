@@ -98,7 +98,7 @@ h2{font-size:17px;font-weight:600}h3{font-size:15px;font-weight:600}
 .stack{gap:16px}
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 .grid2>.card+.card{margin-top:0}
-.main>.grid2{margin-top:16px}
+.main>.grid2,.view>.grid2{margin-top:16px}
 .row-wrap{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
 .toolbar.wrap{align-items:flex-start}
@@ -469,9 +469,9 @@ input[type=date].inp,input[type=time].inp{color-scheme:dark}
 
 /* ---- Gezinme ve geçişler (her iki panel) ---- */
 @keyframes dnl-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.main > * { animation: dnl-rise .32s ease both; }
-.main > *:nth-child(2) { animation-delay: .04s; }
-.main > *:nth-child(3) { animation-delay: .08s; }
+.view > * { animation: dnl-rise .32s ease both; }
+.view > *:nth-child(2) { animation-delay: .04s; }
+.view > *:nth-child(3) { animation-delay: .08s; }
 .nav-item { transition: color .2s ease, background-color .2s ease, transform .15s ease; }
 .nav-item:active { transform: scale(.97); }
 @media (max-width: 860px) {
@@ -480,7 +480,7 @@ input[type=date].inp,input[type=time].inp{color-scheme:dark}
   .tabs .nav-item.active::before { content: ''; position: absolute; top: 0; left: 28%; right: 28%; height: 3px; border-radius: 0 0 3px 3px; background: var(--lilac); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .main > *, .nav-item { animation: none !important; transition: none !important; }
+  .view > *, .nav-item { animation: none !important; transition: none !important; }
 }
 
 /* ---- Yenileme: kart derinliği, düğme ve liste geri bildirimi, sakin geçişler (her iki panel) ---- */
@@ -501,3 +501,53 @@ input[type=date].inp,input[type=time].inp{color-scheme:dark}
   .card,.btn,.nav-item{transition:none !important}
   .btn:not(:disabled):active{transform:none}
 }
+
+/* ==== Tasarım dili v2 (her iki panel): sakin derinlik, net hiyerarşi, az ve anlamlı hareket ==== */
+/* Arka plan: çok hafif marka ışığı (içeriği etkilemez) */
+body{background:radial-gradient(1100px 560px at 88% -12%,rgba(111,82,242,.11),transparent 62%),radial-gradient(900px 520px at -12% 112%,rgba(46,211,230,.05),transparent 60%),var(--bg);background-attachment:fixed}
+.side{background:linear-gradient(180deg,rgba(17,17,24,.92),rgba(10,10,14,.96))}
+.top{-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.top-title{font-size:19px;letter-spacing:-.02em}
+
+/* Logo: işaret + kelime */
+.side-brand{align-items:center;gap:10px}
+.side-brand::before{content:'';flex:none;width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#9A85FF 0%,#6F52F2 48%,#2ED3E6 120%);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 8px 22px -8px rgba(111,82,242,.8)}
+.wm{background:linear-gradient(180deg,#FFFFFF 20%,#CFC6FF 110%);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* Özet kutuları */
+.kpi{position:relative;overflow:hidden;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0) 60%),var(--surface);transition:border-color .2s var(--ease),transform .2s var(--ease),box-shadow .2s var(--ease)}
+a.kpi:hover{border-color:rgba(138,115,255,.38);transform:translateY(-2px);box-shadow:0 14px 30px -20px rgba(111,82,242,.7);color:var(--text)}
+.kpi b{font-size:21px}
+.kpi.ok .k-ic{color:var(--green);background:rgba(61,211,154,.1)}
+.kpi.hero{border-color:rgba(138,115,255,.32);background:radial-gradient(420px 160px at 0% 0%,rgba(111,82,242,.28),transparent 70%),var(--surface)}
+.kpi.hero b{font-size:26px}
+.kpis-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.kpis-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+
+/* Etiketler: yumuşak hap */
+.tag{border-radius:999px;padding:0 10px}
+
+/* Yükleme iskeleti: veri gelene kadar boş ekran yerine sakin bir ışıltı */
+@keyframes dnl-shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+.view:empty{min-height:220px;border-radius:var(--r-lg);border:1px solid var(--line);background:linear-gradient(90deg,rgba(255,255,255,.015) 20%,rgba(255,255,255,.05) 50%,rgba(255,255,255,.015) 80%) 0 0/200% 100%;animation:dnl-shimmer 1.3s linear infinite}
+
+/* Masa kartları: dolu masaya hafif ışıma */
+.tcard.busy{box-shadow:0 0 0 1px rgba(138,115,255,.12),0 16px 34px -22px rgba(111,82,242,.75)}
+.tcard{transition:border-color .2s var(--ease),transform .2s var(--ease),box-shadow .2s var(--ease),background-color .2s var(--ease)}
+
+/* Kart başlıkları */
+.card-h h2{display:flex;align-items:center;gap:8px}
+
+@media (max-width:860px){
+  .kpis-3,.kpis-4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpis-3 .kpi.hero{grid-column:1/-1}
+  .kpi.hero b{font-size:22px}
+  .top-title{font-size:17px}
+}
+@media (prefers-reduced-motion:reduce){
+  .view:empty{animation:none}
+  .kpi,.tcard{transition:none !important}
+  a.kpi:hover{transform:none}
+}
+/* Kart içindeki kutu grupları tek satıra sığsın (yalnız kalan kutu olmasın) */
+.card .kpis{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
