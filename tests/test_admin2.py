@@ -66,6 +66,7 @@ try:
     a.post(f'/admin/businesses/{bid}/lifetime', {'on': True, 'reason': 'tutarsız', 'amount': 'abc'})
     check('Geçersiz tutar kayıt açmaz (yetki de değişmez)', d(a.get(f'/admin/businesses/{bid}'))['business']['lifetime'] is False and sql("SELECT COUNT(*) FROM admin_payments WHERE business_id=?", (bid,))[0][0] == before + 1)
     a.post(f'/admin/businesses/{bid}/lifetime', {'on': False, 'reason': 'deneme3'})
+    check('İşletme kodu ile arama (DNL-xxxxx)', any(i['id'] == bid for i in d(a.get(f'/admin/businesses?q=DNL-{bid:05d}'))['items']))
     sql("UPDATE businesses SET trial_ends_at='2099-01-01 00:00:00' WHERE id=?", (bid,))
 
     print('== Bilgi, e-posta, sahiplik ==')

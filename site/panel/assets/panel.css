@@ -466,3 +466,19 @@ input[type=date].inp,input[type=time].inp{color-scheme:dark}
   .setup-foot{flex-direction:column-reverse;align-items:stretch}
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* ---- Gezinme ve geçişler (her iki panel) ---- */
+@keyframes dnl-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.main > * { animation: dnl-rise .32s ease both; }
+.main > *:nth-child(2) { animation-delay: .04s; }
+.main > *:nth-child(3) { animation-delay: .08s; }
+.nav-item { transition: color .2s ease, background-color .2s ease, transform .15s ease; }
+.nav-item:active { transform: scale(.97); }
+@media (max-width: 860px) {
+  .tabs .nav-item { position: relative; }
+  .tabs .nav-item span { font-size: 11px; font-weight: 600; letter-spacing: .01em; }
+  .tabs .nav-item.active::before { content: ''; position: absolute; top: 0; left: 28%; right: 28%; height: 3px; border-radius: 0 0 3px 3px; background: var(--lilac); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .main > *, .nav-item { animation: none !important; transition: none !important; }
+}

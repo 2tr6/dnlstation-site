@@ -55,7 +55,7 @@ export function billingView(ctx) {
       plansBox,
       h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', null, 'Nasıl ödenir?')),
         b.payment_info ? h('div', { class: 'pay-info' }, h('pre', { class: 'mono' }, b.payment_info), h('button', { class: 'btn btn-ghost sm', type: 'button', onclick: () => copy(b.payment_info, 'Ödeme bilgileri kopyalandı.') }, icon('copy', 14), 'Kopyala')) : null,
-        h('p', { class: 'muted' }, `Ödeme açıklamasına işletme kodunuzu (${b.reference}) yazın. Ödemeniz kontrol edilince paketiniz aynı gün aktif edilir.`),
+        h('p', { class: 'muted' }, `Ödeme açıklamasına işletme adınızı ve işletme kodunuzu (${b.reference}) yazın. Ödemeniz kontrol edilince paketiniz aynı gün aktif edilir.`),
         h('div', { class: 'row-wrap' },
           wa ? h('a', { class: 'btn btn-primary', href: `https://wa.me/${wa}?text=${waText}`, target: '_blank', rel: 'noopener noreferrer' }, 'WhatsApp ile yazın') : null,
           b.support_email ? h('a', { class: 'btn btn-ghost', href: `mailto:${b.support_email}?subject=${encodeURIComponent('DNL Station paket - ' + b.reference)}` }, 'E-posta gönderin') : null,

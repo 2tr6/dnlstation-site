@@ -85,6 +85,43 @@ final class AdminAuth
         }
     }
 
+    /** Güvenilir cihaz: yalnızca şifre doğru ve bu cihazda geçerli bir çerez varsa kod adımı atlanır */
+    public const DEVICE_COOKIE = 'dnl_adm_dev';
+    public const DEVICE_DAYS = 30;
+
+    public static function rememberDevice(int $adminId): void
+    {
+        $selector = bin2hex(random_bytes(12));
+        $validator = bin2hex(random_bytes(32));
+        Db::insert('admin_devices', [
+            'admin_id' => $adminId, 'selector' => $selector, 'validator_hash' => hash('sha256', $validator),
+            'created_at' => Db::now(), 'expires_at' => gmdate('Y-m-d H:i:s', time() + self::DEVICE_DAYS * 86400), 'last_used_at' => null,
+        ]);
+        setcookie(self::DEVICE_COOKIE, $selector . ':' . $validator, [
+            'expires' => time() + self::DEVICE_DAYS * 86400, 'path' => '/', 'secure' => Http::isHttps(), 'httponly' => true, 'samesite' => 'Strict',
+        ]);
+    }
+
+    public static function trustedDevice(int $adminId): bool
+    {
+        $raw = (string)($_COOKIE[self::DEVICE_COOKIE] ?? '');
+        if (!preg_match('/^([a-f0-9]{24}):([a-f0-9]{64})$/', $raw, $m)) {
+            return false;
+        }
+        $row = Db::one('SELECT id, validator_hash, expires_at FROM admin_devices WHERE selector = :s AND admin_id = :a', ['s' => $m[1], 'a' => $adminId]);
+        if (!$row || $row['expires_at'] <= Db::now() || !hash_equals((string)$row['validator_hash'], hash('sha256', $m[2]))) {
+            return false;
+        }
+        Db::exec('UPDATE admin_devices SET last_used_at = :n WHERE id = :id', ['n' => Db::now(), 'id' => $row['id']]);
+        return true;
+    }
+
+    /** Şifre değişince ya da yönetici güvenliği sıfırlanınca tüm güvenilir cihazlar iptal edilir */
+    public static function revokeDevices(int $adminId): void
+    {
+        Db::exec('DELETE FROM admin_devices WHERE admin_id = :a', ['a' => $adminId]);
+    }
+
     public static function complete(array $a): void
     {
         unset($_SESSION['adm_pending']);

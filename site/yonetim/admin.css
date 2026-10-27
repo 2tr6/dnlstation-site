@@ -50,3 +50,11 @@ textarea.inp{padding:12px 14px;min-height:88px;resize:vertical;line-height:1.5}
 .ua{overflow-wrap:anywhere;font-size:11.5px}
 .danger-zone{border-color:rgba(242,84,91,.35)}
 .btn[disabled]{opacity:.45;cursor:not-allowed}
+
+/* ---- Yönetici alt menüsü: etiketler net, aktif sekme belirgin ---- */
+@media (max-width: 860px) {
+  .tabs .nav-item { position: relative; }
+  .tabs .nav-item span { font-size: 11px; font-weight: 600; }
+  .tabs .nav-item.active { color: var(--text); }
+  .tabs .nav-item.active::before { content: ''; position: absolute; top: 0; left: 28%; right: 28%; height: 3px; border-radius: 0 0 3px 3px; background: var(--lilac, #a78bfa); }
+}

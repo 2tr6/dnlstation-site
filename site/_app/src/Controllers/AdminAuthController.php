@@ -59,6 +59,12 @@ final class AdminAuthController
             Db::exec('UPDATE admins SET password_hash = :h WHERE id = :id', ['h' => Auth::hash($password), 'id' => $a['id']]);
         }
         if ((int)$a['totp_enabled'] === 1) {
+            if (AdminAuth::trustedDevice((int)$a['id'])) {
+                AdminAuth::complete($a);
+                AdminAuth::log((int)$a['id'], 'admin.login_trusted', 'admin', (int)$a['id']);
+                SecurityLog::add('admin_login_ok', (string)$a['email'], null, 'güvenilir cihaz');
+                return ['ok' => true, 'trusted' => true, 'csrf' => Session::csrf()];
+            }
             AdminAuth::startPending($a, false);
             return ['next' => 'totp', 'csrf' => Session::csrf()];
         }
@@ -82,6 +88,7 @@ final class AdminAuthController
         }
         $in = new Input(Http::json());
         $code = $in->str('code', 6, 10, true, 'Kod');
+        $trust = $in->bool('trust');
         $in->check();
         $a = Db::one('SELECT * FROM admins WHERE id = :id', ['id' => $p['id']]);
         if (!$a || (int)$a['is_active'] !== 1 || ($a['locked_until'] !== null && $a['locked_until'] > Db::now())) {
@@ -103,6 +110,9 @@ final class AdminAuthController
         }
         $a = Db::one('SELECT * FROM admins WHERE id = :id', ['id' => $a['id']]);
         AdminAuth::complete($a);
+        if ($trust) {
+            AdminAuth::rememberDevice((int)$a['id']);
+        }
         AdminAuth::log((int)$a['id'], $p['setup'] ? 'admin.2fa_enabled' : 'admin.login', 'admin', (int)$a['id']);
         SecurityLog::add('admin_login_ok', (string)$a['email']);
         return ['ok' => true, 'csrf' => Session::csrf()];
@@ -155,6 +165,7 @@ final class AdminAuthController
         $e->check();
         Db::exec('UPDATE admins SET password_hash = :h, session_version = session_version + 1, totp_last_step = :s, updated_at = :n WHERE id = :id', ['h' => Auth::hash($pw), 's' => $step, 'n' => Db::now(), 'id' => $a['id']]);
         $a = Db::one('SELECT * FROM admins WHERE id = :id', ['id' => $a['id']]);
+        AdminAuth::revokeDevices((int)$a['id']);
         AdminAuth::complete($a);
         AdminAuth::log((int)$a['id'], 'admin.password_changed', 'admin', (int)$a['id']);
         return ['ok' => true, 'csrf' => Session::csrf()];
