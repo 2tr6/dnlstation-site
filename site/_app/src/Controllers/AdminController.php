@@ -517,9 +517,22 @@ final class AdminController
         $in = new Input(Http::json());
         $on = $in->bool('on');
         $reason = $in->str('reason', 3, 200, true, 'Neden');
+        // Satışla veriliyorsa (havale/nakit vb.) tutar ve yöntem gelir kaydına yazılır; tutar boşsa yalnızca yetki değişir
+        $amount = $on ? $in->money('amount', false, 100000000, 'Tutar') : null;
+        $method = $in->enum('method', ['havale', 'nakit', 'kart', 'diger'], 'havale', 'Ödeme yöntemi');
         $in->check();
-        Db::exec('UPDATE businesses SET lifetime = :l, updated_at = :n WHERE id = :id', ['l' => $on ? 1 : 0, 'n' => Db::now(), 'id' => $b['id']]);
-        AdminAuth::log($aid, $on ? 'business.lifetime_on' : 'business.lifetime_off', 'business', (int)$b['id'], ['reason' => $reason]);
+        Db::tx(static function () use ($aid, $b, $on, $reason, $amount, $method) {
+            Db::exec('UPDATE businesses SET lifetime = :l, updated_at = :n WHERE id = :id', ['l' => $on ? 1 : 0, 'n' => Db::now(), 'id' => $b['id']]);
+            if ($on && $amount !== null && $amount > 0) {
+                $until = Db::value('SELECT paid_until FROM businesses WHERE id = :id', ['id' => $b['id']]) ?: Db::now();
+                Db::insert('admin_payments', [
+                    'business_id' => (int)$b['id'], 'amount_cents' => (int)$amount, 'plan' => (string)($b['plan'] ?: 'baslangic'), 'period' => 'omur', 'months' => 0,
+                    'method' => $method, 'note' => mb_substr('Ömür boyu: ' . $reason, 0, 200), 'paid_until_before' => $until, 'paid_until_after' => $until,
+                    'admin_id' => $aid, 'voided_at' => null, 'created_at' => Db::now(),
+                ]);
+            }
+        });
+        AdminAuth::log($aid, $on ? 'business.lifetime_on' : 'business.lifetime_off', 'business', (int)$b['id'], ['reason' => $reason, 'amount' => $amount, 'method' => $on ? $method : null]);
         return self::business_detail($prm);
     }
 

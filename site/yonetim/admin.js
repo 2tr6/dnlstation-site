@@ -306,8 +306,16 @@ function detailView(main, id) {
     const on = !d.business.lifetime;
     const f = h('form', { class: 'form', novalidate: true },
       h('p', { class: 'muted' }, on ? 'İşletmenin süresi hiç dolmaz; deneme ve ücretli dönem tarihleri dikkate alınmaz. Paket sınırları geçerliliğini korur.' : 'Ömür boyu üyelik kaldırılır; işletme mevcut deneme/ücretli dönem tarihlerine göre çalışır.'),
-      field('Neden', inp('reason', { maxlength: 200, placeholder: on ? 'ör. Kurucu müşteri, iş ortağı' : 'ör. Anlaşma sona erdi' })));
-    formModal(on ? 'Ömür boyu üyelik ver' : 'Ömür boyu üyeliği kaldır', f, on ? 'Ömür boyu yap' : 'Kaldır', () => post(`/admin/businesses/${id}/lifetime`, { on, reason: f.querySelector('[name=reason]').value }), !on);
+      field('Neden', inp('reason', { maxlength: 200, placeholder: on ? 'ör. Kurucu müşteri, iş ortağı' : 'ör. Anlaşma sona erdi' })),
+      ...(on ? [h('div', { class: 'grid2' }, field('Alınan tutar (₺, isteğe bağlı)', inp('amount', { inputmode: 'decimal', class: 'inp mono', placeholder: 'ör. 9990' })),
+        field('Ödeme yöntemi', sel('method', [['havale', 'Havale / EFT'], ['nakit', 'Nakit'], ['kart', 'Kart'], ['diger', 'Diğer']], 'havale')))] : []));
+    formModal(on ? 'Ömür boyu üyelik ver' : 'Ömür boyu üyeliği kaldır', f, on ? 'Ömür boyu yap' : 'Kaldır', () => {
+      // Sunucu TL metni bekler (ör. 9990 ya da 9990,50); binlik noktaları kaldırılır
+      const raw = (f.querySelector('[name=amount]')?.value || '').replace(/\s/g, '').replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.');
+      const body = { on, reason: f.querySelector('[name=reason]').value };
+      if (on) { body.method = f.querySelector('[name=method]')?.value || 'havale'; if (raw) body.amount = raw; }
+      return post(`/admin/businesses/${id}/lifetime`, body);
+    }, !on);
   }
   function limitsModal() {
     const b = d.business;
