@@ -81,6 +81,7 @@ const ROUTES = {
   isletmeler: ['İşletmeler', 'box', businessesView],
   odemeler: ['Ödemeler', 'wallet', paymentsView],
   duyuru: ['Duyuru', 'alert', announceView],
+  ayarlar: ['Ayarlar', 'gear', settingsView],
   kayitlar: ['İşlem kaydı', 'clock', auditView],
   hesap: ['Hesabım', 'user', accountView],
 };
@@ -101,6 +102,7 @@ function moreSheet() {
   const close = () => { wrap.classList.add('out'); setTimeout(() => wrap.remove(), 200); };
   const wrap = h('div', { class: 'sheet-wrap' }, h('div', { class: 'sheet-back', onclick: close }),
     h('div', { class: 'sheet', role: 'dialog', 'aria-label': 'Diğer' }, h('div', { class: 'sheet-grip' }),
+      h('a', { href: '#/ayarlar', class: 'sheet-item', onclick: close }, icon('gear', 22), 'Ayarlar'),
       h('a', { href: '#/kayitlar', class: 'sheet-item', onclick: close }, icon('clock', 22), 'İşlem kaydı'),
       h('a', { href: '#/hesap', class: 'sheet-item', onclick: close }, icon('user', 22), 'Hesabım'),
       h('button', { type: 'button', class: 'sheet-item danger', onclick: () => { close(); logout(); } }, icon('logout', 22), 'Çıkış yap')));
@@ -363,6 +365,29 @@ function announceView(main) {
   })();
 }
 
+/* ---------- Genel ayarlar ---------- */
+function settingsView(main) {
+  (async () => {
+    let st;
+    try { st = (await get('/admin/settings')).settings; } catch (e) { add(main, empty(e.message)); return; }
+    const pay = h('textarea', { class: 'inp mono', name: 'payment_info', rows: '5', maxlength: '600', placeholder: 'Alıcı: Ad Soyad\nBanka: ...\nIBAN: TR00 0000 ...' });
+    pay.value = st.payment_info || '';
+    const f = h('form', { class: 'form narrow', novalidate: true },
+      field('Yeni kayıtlarda deneme süresi (gün)', inp('trial_days', { inputmode: 'numeric', class: 'inp mono', value: String(st.trial_days) }), 'Mevcut işletmelerin süresi değişmez; tek tek uzatmak için işletme detayını kullanın.'),
+      field('Ödeme bilgileri (işletmelerin “Paketim” sayfasında görünür)', pay),
+      field('WhatsApp numarası', inp('whatsapp', { inputmode: 'tel', value: st.whatsapp || '', placeholder: '05XX XXX XX XX' })),
+      field('Destek e-postası', inp('support_email', { type: 'email', value: st.support_email || '', placeholder: 'destek@dnlstation.com.tr' })));
+    const save = h('button', { class: 'btn btn-primary', type: 'submit' }, 'Kaydet');
+    f.append(save);
+    add(main, h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', null, 'Genel ayarlar')), f));
+    f.addEventListener('submit', (e) => { e.preventDefault(); busy(save, async () => {
+      const v = (n) => f.querySelector(`[name=${n}]`).value;
+      try { await put('/admin/settings', { trial_days: parseInt(v('trial_days'), 10) || 0, payment_info: v('payment_info'), whatsapp: v('whatsapp'), support_email: v('support_email') }); toast('Ayarlar kaydedildi.', 'good'); }
+      catch (err) { if (!showErrors(f, err)) fail(err); }
+    }); });
+  })();
+}
+
 /* ---------- İşlem kaydı ---------- */
 const ACTION = {
   'admin.login': 'Yönetici girişi', 'admin.logout': 'Yönetici çıkışı', 'admin.login_failed': 'Hatalı giriş denemesi', 'admin.locked': 'Yönetici hesabı kilitlendi', 'admin.2fa_enabled': '2FA kuruldu', 'admin.password_changed': 'Yönetici şifresi değişti',
@@ -370,7 +395,7 @@ const ACTION = {
   'business.plan': 'Paket değişti', 'business.trial': 'Deneme uzatıldı', 'business.payment': 'Ödeme kaydedildi', 'business.payment_void': 'Ödeme kaydı iptal', 'business.paid_until': 'Bitiş düzeltildi',
   'business.suspend': 'İşletme donduruldu', 'business.unsuspend': 'Dondurma kaldırıldı', 'business.note': 'Not güncellendi',
   'user.unlock': 'Kullanıcı kilidi açıldı', 'user.logout_all': 'Kullanıcı oturumları kapatıldı', 'user.deactivate': 'Kullanıcı pasife alındı', 'user.activate': 'Kullanıcı aktif edildi', 'user.send_reset': 'Sıfırlama bağlantısı gönderildi', 'user.resend_verify': 'Doğrulama e-postası gönderildi',
-  'system.announcement': 'Duyuru güncellendi',
+  'system.announcement': 'Duyuru güncellendi', 'system.settings': 'Genel ayarlar güncellendi',
 };
 function metaText(l) {
   const m = l.meta || {};

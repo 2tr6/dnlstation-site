@@ -181,7 +181,8 @@
         password: pw.value, password_confirm: pw2.value,
         types: $$('input[name="tur"]:checked').map(function (i) { return i.value; }),
         plan: ($('input[name="paket"]:checked') || {}).value, period: ($('input[name="donem"]:checked') || {}).value,
-        accept: $('input[name="onay"]').checked
+        accept: $('input[name="onay"]').checked,
+        website: ($('input[name="website"]') || {}).value || ''
       };
       setBusy(signup, true, 'Hesabınız oluşturuluyor…');
       api('/auth/register', body).then(function (res) {

@@ -202,6 +202,7 @@ try:
     st.csrf = d(r)['csrf']
     check('Personel masaları görür', st.get('/dashboard').status_code == 200)
     check('Personel ciroyu görmez', d(st.get('/dashboard'))['kpi']['revenue_today_cents'] is None)
+    check('Personel Paketim sayfasını göremez', st.get('/billing').status_code == 403)
     for path in ['/reports/summary', '/staff', '/settings', '/audit', '/products', '/catalog', '/shifts']:
         check(f'Personel {path} erişemez (403)', st.get(path).status_code == 403)
     r = st.post(f'/sessions/{s2}/cancel', {'reason': 'deneme'})
@@ -269,6 +270,7 @@ try:
     check('Kapanan vardiyanın hesabı geri alınamaz', r.status_code == 409, r.text)
     rep = d(own.get('/reports/summary'))
     check('Rapor özeti', rep['totals']['tickets'] == 2 and rep['totals']['revenue'] == paid_total + half and len(rep['series']) == 1, rep.get('totals'))
+    check('Rapor yoğunluk haritası (7×24) ve önceki dönem', len(rep['heatmap']) == 7 and len(rep['heatmap'][0]) == 24 and 'previous' in rep, list(rep.keys()))
     check('Rapor tür kırılımı', any(t['name'] == 'PlayStation' for t in rep['by_type']), rep['by_type'])
     r = own.get('/reports/summary?from=2026-13-01&to=2026-01-01')
     check('Geçersiz tarih reddedilir', r.status_code == 422)

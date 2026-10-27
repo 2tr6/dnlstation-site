@@ -42,7 +42,6 @@ if (!is_file($path)) {
         'db' => ['driver' => 'mysql', 'host' => 'localhost', 'port' => 3306, 'name' => $name, 'user' => $user, 'pass' => $pass],
         'mail' => ['from' => 'noreply@dnlstation.com.tr', 'from_name' => 'DNL Station'],
         'migrate_token' => bin2hex(random_bytes(32)),
-        'trial_days' => 14,
         'debug' => false,
     ];
     $old = umask(0077);

@@ -35,6 +35,11 @@ final class AuthController
     public static function register(): array
     {
         RateLimiter::enforce('register:ip:' . Http::ip(), 5, 3600, 'Kısa sürede çok fazla kayıt denemesi yapıldı. Lütfen daha sonra tekrar deneyin.');
+        // Bot tuzağı: insanlara görünmeyen alan doluysa kayıt yapılmaz
+        $hp = Http::json()['website'] ?? '';
+        if (!is_string($hp) || $hp !== '') {
+            throw new HttpError(422, 'Kayıt tamamlanamadı. Lütfen sayfayı yenileyip tekrar deneyin.', 'validation');
+        }
         $in = new Input(Http::json());
         $name = $in->str('name', 2, 80, true, 'Ad soyad');
         $business = $in->str('business', 2, 120, true, 'İşletme adı');
@@ -63,7 +68,7 @@ final class AuthController
         }
 
         $now = Db::now();
-        $trialDays = (int)Config::get('trial_days', 14);
+        $trialDays = \Dnl\Services\SystemSettings::trialDays();
         $hash = Auth::hash($password);
         try {
             [$bid, $uid] = Db::tx(static function () use ($business, $phone, $plan, $period, $types, $now, $trialDays, $name, $email, $hash) {
@@ -108,7 +113,7 @@ final class AuthController
             throw $e;
         }
 
-        self::sendVerification($uid, $email, $name);
+        self::sendVerification($uid, $email, $name, true, $business);
         $user = Db::one('SELECT * FROM users WHERE id = :id', ['id' => $uid]);
         Auth::login($user, false);
         Audit::log($bid, $uid, 'auth.register', 'business', $bid);
@@ -184,7 +189,7 @@ final class AuthController
                 Tokens::revokeAll((int)$user['id'], 'reset');
                 [$sel, $val] = Tokens::create((int)$user['id'], 'reset', self::RESET_TTL);
                 $link = Mailer::url('/sifre-yenile/#t=' . $sel . '.' . $val);
-                Mailer::send($user['email'], 'DNL Station şifre sıfırlama', "Merhaba {$user['name']},\n\nŞifrenizi sıfırlamak için aşağıdaki bağlantıyı kullanın. Bağlantı 1 saat geçerlidir ve yalnızca bir kez kullanılabilir.\n\n$link\n\nBu isteği siz yapmadıysanız bu e-postayı yok sayabilirsiniz; şifreniz değişmez.\n\nDNL Station");
+                \Dnl\Services\Emails::reset($user['email'], $user['name'], $link);
                 Audit::log((int)$user['business_id'], (int)$user['id'], 'auth.reset_requested', 'user', (int)$user['id']);
             }
         }
@@ -319,11 +324,11 @@ final class AuthController
         return ['message' => 'Şifreniz güncellendi. Diğer cihazlardaki oturumlar kapatıldı.', 'csrf' => Session::csrf()];
     }
 
-    private static function sendVerification(int $uid, string $email, string $name): void
+    private static function sendVerification(int $uid, string $email, string $name, bool $welcome = false, string $business = ''): void
     {
         Tokens::revokeAll($uid, 'verify');
         [$sel, $val] = Tokens::create($uid, 'verify', self::VERIFY_TTL);
         $link = Mailer::url('/dogrula/#t=' . $sel . '.' . $val);
-        Mailer::send($email, 'DNL Station e-posta doğrulama', "Merhaba $name,\n\nDNL Station hesabınızı oluşturduğunuz için teşekkürler. E-posta adresinizi doğrulamak için aşağıdaki bağlantıyı açın (48 saat geçerlidir):\n\n$link\n\nBu hesabı siz oluşturmadıysanız bu e-postayı yok sayabilirsiniz.\n\nDNL Station");
+        $welcome ? \Dnl\Services\Emails::welcomeVerify($email, $name, $business, $link) : \Dnl\Services\Emails::verify($email, $name, $link);
     }
 }

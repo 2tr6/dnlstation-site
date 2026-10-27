@@ -14,6 +14,7 @@ use Dnl\Core\Input;
 use Dnl\Core\Mailer;
 use Dnl\Core\Tokens;
 use Dnl\Services\Subscription;
+use Dnl\Services\SystemSettings;
 
 /**
  * Ana yönetici: işletmeler, paket/süre, ödemeler, dondurma, kullanıcı desteği, duyuru, kayıtlar.
@@ -355,7 +356,7 @@ final class AdminController
             case 'send_reset':
                 Tokens::revokeAll($id, 'reset');
                 [$sel, $val] = Tokens::create($id, 'reset', 3600);
-                Mailer::send($u['email'], 'DNL Station şifre sıfırlama', "Merhaba {$u['name']},\n\nDestek talebiniz üzerine şifre sıfırlama bağlantınız oluşturuldu. Bağlantı 1 saat geçerlidir ve yalnızca bir kez kullanılabilir.\n\n" . Mailer::url('/sifre-yenile/#t=' . $sel . '.' . $val) . "\n\nBu isteği siz yapmadıysanız bu e-postayı yok sayabilirsiniz.\n\nDNL Station");
+                \Dnl\Services\Emails::reset($u['email'], $u['name'], Mailer::url('/sifre-yenile/#t=' . $sel . '.' . $val), true);
                 break;
             case 'resend_verify':
                 if ($u['email_verified_at'] !== null) {
@@ -363,7 +364,7 @@ final class AdminController
                 }
                 Tokens::revokeAll($id, 'verify');
                 [$sel, $val] = Tokens::create($id, 'verify', 172800);
-                Mailer::send($u['email'], 'DNL Station e-posta doğrulama', "Merhaba {$u['name']},\n\nE-posta adresinizi doğrulamak için aşağıdaki bağlantıyı kullanın:\n\n" . Mailer::url('/dogrula/#t=' . $sel . '.' . $val) . "\n\nDNL Station");
+                \Dnl\Services\Emails::verify($u['email'], $u['name'], Mailer::url('/dogrula/#t=' . $sel . '.' . $val));
                 break;
         }
         AdminAuth::log($aid, 'user.' . $action, 'user', $id, ['business' => (int)$u['business_id']]);
@@ -428,5 +429,36 @@ final class AdminController
         });
         AdminAuth::log($aid, 'system.announcement', 'system', null, ['active' => $active, 'text' => mb_substr($text, 0, 80)]);
         return ['announcement' => self::currentAnnouncement(true)];
+    }
+
+    public static function settings(): array
+    {
+        AdminAuth::require();
+        return ['settings' => SystemSettings::all()];
+    }
+
+    public static function saveSettings(): array
+    {
+        $aid = AdminAuth::id();
+        $in = new Input(Http::json());
+        $vals = [
+            'trial_days' => (int)$in->int('trial_days', 1, 60, null, 'Deneme süresi'),
+            'payment_info' => (string)($in->has('payment_info') ? self::multiline((string)(Http::json()['payment_info'] ?? ''), 600) : ''),
+            'whatsapp' => $in->phone('whatsapp', false),
+            'support_email' => $in->has('support_email') ? $in->email('support_email') : '',
+        ];
+        $in->check();
+        $before = SystemSettings::all();
+        $after = SystemSettings::save($vals);
+        AdminAuth::log($aid, 'system.settings', 'system', null, ['trial_days' => [$before['trial_days'], $after['trial_days']]]);
+        return ['settings' => $after];
+    }
+
+    /** Çok satırlı metin: kontrol karakterleri temizlenir, satır sonları korunur */
+    private static function multiline(string $v, int $max): string
+    {
+        $v = str_replace("\r\n", "\n", $v);
+        $v = preg_replace('/[\x00-\x09\x0B-\x1F\x7F]/u', '', $v) ?? '';
+        return mb_substr(trim($v), 0, $max);
     }
 }

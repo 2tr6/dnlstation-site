@@ -39,7 +39,6 @@ final class Config
             'migrate_token' => '',
             'require_email_verification' => false,
             'force_secure_cookies' => true,
-            'trial_days' => 14,
             'log_dir' => DNL_ROOT . '/storage/logs',
             'debug' => false,
         ];

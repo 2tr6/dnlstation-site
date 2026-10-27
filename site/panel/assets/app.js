@@ -8,6 +8,7 @@ import { reportsView } from './v-reports.js?v=1';
 import { settingsView } from './v-settings.js?v=1';
 import { accountView } from './v-account.js?v=1';
 import { setupView } from './v-setup.js?v=1';
+import { billingView } from './v-billing.js?v=1';
 
 const ROUTES = {
   masalar: { title: 'Masalar', icon: 'grid', view: tablesView, perm: 'tables.operate', tab: true },
@@ -16,10 +17,11 @@ const ROUTES = {
   raporlar: { title: 'Raporlar', icon: 'chart', view: reportsView, perm: 'reports.view', tab: true },
   urunler: { title: 'Ürünler', icon: 'box', view: productsView, perm: 'products.manage' },
   ayarlar: { title: 'Ayarlar', icon: 'gear', view: settingsView, perm: null, anyPerm: ['settings.tables', 'settings.business', 'staff.manage', 'display.manage', 'audit.view'] },
+  paket: { title: 'Paketim', icon: 'wallet', view: billingView, perm: 'settings.business' },
   hesap: { title: 'Hesabım', icon: 'user', view: accountView, perm: null },
   kurulum: { title: 'Kurulum', icon: 'gear', view: setupView, perm: null, hidden: true },
 };
-const ORDER = ['masalar', 'kafe', 'vardiya', 'raporlar', 'urunler', 'ayarlar', 'hesap'];
+const ORDER = ['masalar', 'kafe', 'vardiya', 'raporlar', 'urunler', 'ayarlar', 'paket', 'hesap'];
 
 const app = $('#app');
 let current = null; // { name, cleanup }
@@ -95,10 +97,10 @@ function announceBanner() {
 function subBanner() {
   const s = state.me.subscription;
   if (s.state === 'expired') {
-    return h('div', { class: 'banner bad' }, icon('alert', 18), h('span', null, 'Deneme süreniz sona erdi. Kayıtlarınız güvende; yeni işlem yapmak için paketinizi yenileyin. '), h('a', { href: 'https://www.instagram.com/dnlstation/', target: '_blank', rel: 'noopener' }, 'Bize ulaşın'));
+    return h('div', { class: 'banner bad' }, icon('alert', 18), h('span', null, 'Deneme süreniz sona erdi. Kayıtlarınız güvende; yeni işlem yapmak için paketinizi yenileyin. '), can('settings.business') ? h('a', { href: '#/paket' }, 'Paketi yenile') : h('span', null, 'İşletme sahibinize bilgi verin.'));
   }
   if (s.state === 'trial' && s.days_left <= 3) {
-    return h('div', { class: 'banner warn' }, icon('clock', 18), h('span', null, `Deneme sürenizin bitmesine ${s.days_left} gün kaldı.`));
+    return h('div', { class: 'banner warn' }, icon('clock', 18), h('span', null, `Deneme sürenizin bitmesine ${s.days_left} gün kaldı.`), can('settings.business') ? h('a', { href: '#/paket' }, 'Paketi seç') : null);
   }
   return null;
 }

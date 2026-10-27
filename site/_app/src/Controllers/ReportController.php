@@ -86,8 +86,21 @@ final class ReportController
         arsort($byStaff);
         $voids = (int)Db::value("SELECT COUNT(*) FROM tickets WHERE business_id = :b AND status = 'void' AND closed_at >= :f AND closed_at < :t", $p);
 
+        // Yoğunluk: haftanın günü × saat (yerel saat), başlayan masa oturumlarına göre
+        $heat = array_fill(0, 7, array_fill(0, 24, 0));
+        foreach (Db::all("SELECT started_at FROM play_sessions WHERE business_id = :b AND status = 'closed' AND started_at >= :f AND started_at < :t", $p) as $r) {
+            $dt = (new \DateTimeImmutable($r['started_at'], new \DateTimeZone('UTC')))->setTimezone($tz);
+            $heat[(int)$dt->format('N') - 1][(int)$dt->format('G')]++;
+        }
+        // Önceki dönem: aynı uzunlukta, hemen öncesi
+        $len = strtotime($ut . ' UTC') - strtotime($uf . ' UTC');
+        $pp = ['b' => $bid, 'f' => gmdate('Y-m-d H:i:s', strtotime($uf . ' UTC') - $len), 't' => $uf];
+        $prev = Db::one("SELECT COUNT(*) AS cnt, COALESCE(SUM(total_cents),0) AS total FROM tickets WHERE business_id = :b AND status = 'paid' AND closed_at >= :f AND closed_at < :t", $pp);
+
         return [
             'from' => $from, 'to' => $to,
+            'heatmap' => $heat,
+            'previous' => ['revenue' => (int)$prev['total'], 'tickets' => (int)$prev['cnt']],
             'totals' => $tot + ['voids' => $voids, 'avg_ticket' => $tot['tickets'] ? (int)round($tot['revenue'] / $tot['tickets']) : 0],
             'methods' => $methods,
             'series' => $series,

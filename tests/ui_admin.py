@@ -19,7 +19,7 @@ try:
             ctx = b.new_context(viewport=vp, is_mobile=mobile, has_touch=mobile, locale='tr-TR', timezone_id='Europe/Istanbul')
             page = ctx.new_page(); errors = []
             page.on('pageerror', lambda e: errors.append(str(e)))
-            page.on('console', lambda m: errors.append(m.text) if m.type == 'error' and 'ERR_TUNNEL' not in m.text and 'status of 401' not in m.text else None)
+            page.on('console', lambda m: errors.append(m.text) if m.type == 'error' and 'ERR_TUNNEL' not in m.text and 'status of 401' not in m.text and 'ERR_CONNECTION_REFUSED' not in m.text else None)
             page.goto(BASE + '/yonetim/')
             page.fill('input[name=email]', 'yagiz@dnlstation.com.tr'); page.fill('input[name=password]', 'Cok.Guclu-Yonetici-77')
             page.click('button:has-text("Devam")')

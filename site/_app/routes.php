@@ -43,6 +43,10 @@ $r->add('POST', '/admin/payments/{id}/void', fn($p) => C\AdminController::voidPa
 $r->add('GET', '/admin/audit', fn() => C\AdminController::audit(), $ad);
 $r->add('GET', '/admin/announcement', fn() => C\AdminController::announcement(), $ad);
 $r->add('PUT', '/admin/announcement', fn() => C\AdminController::setAnnouncement(), $ad);
+$r->add('GET', '/admin/settings', fn() => C\AdminController::settings(), $ad);
+$r->add('PUT', '/admin/settings', fn() => C\AdminController::saveSettings(), $ad);
+// İşletme: paket ve ödeme bilgileri (süresi dolsa da görüntülenebilir)
+$r->add('GET', '/billing', fn() => C\BillingController::show(), ['auth' => $all]);
 $r->add('POST', '/auth/forgot', fn() => C\AuthController::forgot());
 $r->add('POST', '/auth/reset', fn() => C\AuthController::reset());
 $r->add('POST', '/auth/verify', fn() => C\AuthController::verify());

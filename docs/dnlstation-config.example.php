@@ -35,8 +35,6 @@ return [
     // Aynı değeri GitHub > Settings > Secrets > Actions altında MIGRATE_TOKEN olarak da kaydedin.
     'migrate_token' => 'DEGISTIR',
 
-    'trial_days' => 14,
-
     // Üretimde mutlaka false kalmalı (true olursa hata ayrıntıları API yanıtlarında görünür).
     'debug' => false,
 ];

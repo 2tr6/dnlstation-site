@@ -39,6 +39,22 @@ function barChart(series) {
   return svg;
 }
 
+/** Haftanın günü × saat yoğunluk haritası (başlayan masa sayısı) */
+function heatmap(m) {
+  if (!m) return null;
+  const max = Math.max(0, ...m.flat());
+  const days = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+  let best = null;
+  m.forEach((row, d) => row.forEach((v, hr) => { if (v > 0 && (!best || v > best.v)) best = { v, d, hr }; }));
+  const grid = h('div', { class: 'heat', role: 'img', 'aria-label': 'Saatlere göre yoğunluk haritası' },
+    h('span'), ...Array.from({ length: 24 }, (_, i) => h('small', { class: 'hh' }, i % 3 === 0 ? String(i).padStart(2, '0') : '')),
+    ...m.flatMap((row, d) => [h('small', { class: 'hd' }, days[d]), ...row.map((v, hr) => h('i', { title: `${days[d]} ${String(hr).padStart(2, '0')}:00 · ${v} masa`, style: { opacity: max ? String(v ? 0.18 + 0.82 * v / max : 0.05) : '0.05' } }))]));
+  return h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', null, 'En yoğun saatler'),
+    best ? h('span', { class: 'tag ok' }, `En yoğun: ${days[best.d]} ${String(best.hr).padStart(2, '0')}:00`) : null),
+    max ? h('div', { class: 'heat-wrap' }, grid) : h('p', { class: 'muted sm' }, 'Bu aralıkta kapanmış masa oturumu yok.'),
+    h('p', { class: 'hint' }, 'Koyu kutular, o gün ve saatte daha çok masa açıldığını gösterir. Personel ve kampanya planlamasında kullanın.'));
+}
+
 function breakdown(title, rows, cols) {
   return h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', null, title)),
     rows.length ? h('div', { class: 'tbl-wrap' }, h('table', { class: 'tbl compact' },
@@ -66,9 +82,12 @@ export function reportsView(ctx) {
     try { r = await get(`/reports/summary?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`); } catch (e) { fail(e); return; }
     const t = r.totals;
     const k = (l, v, sub) => h('div', { class: 'kpi' }, h('div', null, h('small', null, l), h('b', { class: 'mono' }, v), sub ? h('em', null, sub) : null));
+    const pv = r.previous || { revenue: 0, tickets: 0 };
+    const delta = pv.revenue > 0 ? Math.round((t.revenue - pv.revenue) * 100 / pv.revenue) : null;
+    const deltaTxt = delta === null ? 'Önceki dönem: veri yok' : `Önceki döneme göre ${delta > 0 ? '+' : ''}${delta}%`;
     const mt = r.methods; const all = mt.cash + mt.card + mt.other || 1;
     fill(out, 
-      h('div', { class: 'kpis' }, k('Toplam tahsilat', money(t.revenue), `${t.tickets} hesap`), k('Oyun', money(t.game)), k('Ürün', money(t.items)),
+      h('div', { class: 'kpis' }, k('Toplam tahsilat', money(t.revenue), `${t.tickets} hesap · ${deltaTxt}`), k('Oyun', money(t.game)), k('Ürün', money(t.items)),
         k('Ortalama hesap', money(t.avg_ticket)), k('İndirim', money(t.discount)), k('İptal', String(t.voids))),
       h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', null, 'Günlük tahsilat')), r.series.length > 1 ? barChart(r.series) : h('p', { class: 'muted sm' }, 'Tek günlük aralıkta grafik gösterilmez; daha geniş bir aralık seçin.'),
         h('div', { class: 'split-bar', 'aria-label': 'Ödeme yöntemleri' },
@@ -77,6 +96,7 @@ export function reportsView(ctx) {
           h('span', null, h('i', { class: 'cash' }), `Nakit ${money(mt.cash)} (${Math.round(mt.cash * 100 / all)}%)`),
           h('span', null, h('i', { class: 'card' }), `Kart ${money(mt.card)} (${Math.round(mt.card * 100 / all)}%)`),
           mt.other ? h('span', null, h('i', { class: 'other' }), `Diğer ${money(mt.other)}`) : null)),
+      heatmap(r.heatmap),
       h('div', { class: 'grid2' },
         breakdown('Oyun türüne göre', r.by_type, [{ label: 'Tür', get: (x) => x.name }, { label: 'Oturum', num: 1, get: (x) => String(x.count) }, { label: 'Oyun', num: 1, get: (x) => money(x.game_cents) }, { label: 'Ürün', num: 1, get: (x) => money(x.items_cents) }]),
         breakdown('En çok satan ürünler', r.top_products, [{ label: 'Ürün', get: (x) => x.name }, { label: 'Adet', num: 1, get: (x) => String(x.qty) }, { label: 'Tutar', num: 1, get: (x) => money(x.total_cents) }])),

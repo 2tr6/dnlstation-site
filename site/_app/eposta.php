@@ -40,12 +40,16 @@ $tries = [
 ];
 $name = (string)Config::get('mail.from_name', 'DNL Station');
 $subject = '=?UTF-8?B?' . base64_encode('DNL Station e-posta testi') . '?=';
-$body = "Merhaba,\n\nBu, DNL Station e-posta ayarının test mesajıdır. Bu mesajı aldıysanız doğrulama ve şifre sıfırlama e-postaları çalışıyor.\n\nDNL Station";
+[$body, $html] = \Dnl\Services\Emails::test($to);
 $working = null;
+$cur = (array)Config::get('mail.smtp', []);
+if (Config::get('mail.transport') === 'smtp' && !empty($cur['host'])) {
+    array_unshift($tries, array_intersect_key($cur, ['host' => 1, 'port' => 1, 'secure' => 1, 'verify' => 1]));
+}
 foreach ($tries as $t) {
     $cfg = $t + ['user' => $from, 'pass' => $pass];
     $label = "{$t['host']}:{$t['port']} ({$t['secure']})";
-    if (Mailer::smtp($cfg, $from, $name, $to, $subject, $body)) {
+    if (Mailer::smtp($cfg, $from, $name, $to, $subject, $body, $html)) {
         $out("OK  Gönderildi: $label");
         $working = $cfg;
         break;

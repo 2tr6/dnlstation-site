@@ -168,6 +168,16 @@ a.kpi:hover{border-color:var(--line-2);color:var(--text)}
 .btn.on{background:rgba(111,82,242,.16);border-color:rgba(138,115,255,.55);color:#fff}
 .edit-bar{margin-bottom:12px}
 
+/* Paketim */
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:16px 0}
+.plans .card+.card{margin-top:0}
+.plan.cur{border-color:rgba(138,115,255,.55)}
+.plan-price{font-size:28px;font-weight:600;color:var(--text-strong);margin:0}
+.plan-price small{font-size:14px;color:var(--muted)}
+.plan-f{margin:12px 0 0;padding-left:18px;color:#C9C6D8;font-size:14px}
+.pay-info{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;padding:12px;border-radius:var(--r);background:var(--bg-2);border:1px solid var(--line-2);margin-bottom:12px}
+.pay-info pre{flex:1;min-width:0;margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;color:#fff}
+
 /* Modal */
 .modal{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:24px;animation:fade .18s ease both}
 .modal.out{animation:fadeout .18s ease both}
@@ -324,6 +334,13 @@ input[type=date].inp,input[type=time].inp{color-scheme:dark}
 .legend span{display:inline-flex;align-items:center;gap:8px}
 .legend i{width:10px;height:10px;border-radius:3px;display:inline-block;padding:0;border:0}
 .date-range .inp{width:auto;min-width:150px}
+
+/* Yoğunluk haritası */
+.heat-wrap{overflow-x:auto;padding-bottom:4px}
+.heat{display:grid;grid-template-columns:34px repeat(24,minmax(14px,1fr));gap:3px;min-width:520px;align-items:center}
+.heat i{display:block;aspect-ratio:1;border-radius:4px;background:var(--violet-2)}
+.heat .hh{font:10px var(--font-mono);color:var(--muted-2);text-align:center}
+.heat .hd{font-size:11.5px;color:var(--muted)}
 
 /* Z raporu */
 .z{font-size:14.5px}

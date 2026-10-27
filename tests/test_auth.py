@@ -37,7 +37,7 @@ try:
     r = c.me()
     d = r.json().get('data', {})
     check('Kayıt sonrası otomatik giriş + /me', r.status_code == 200 and d['user']['role'] == 'owner' and d['business']['name'] == 'Arena Game Center', r.text)
-    check('Deneme süresi 14 gün', d.get('subscription', {}).get('state') == 'trial' and d['subscription']['days_left'] in (13, 14), d.get('subscription'))
+    check('Deneme süresi 7 gün', d.get('subscription', {}).get('state') == 'trial' and d['subscription']['days_left'] in (6, 7), d.get('subscription'))
     check('Doğrulama e-postası gönderildi', last_mail_link('dogrula') is not None)
     c2 = Client()
     r = register(c2)
