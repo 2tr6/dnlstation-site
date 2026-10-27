@@ -57,6 +57,29 @@ final class Emails
         ], 'reset', $bid);
     }
 
+    /** Deneme süresi hatırlatması: $mode = 'soon' (bitmek üzere) veya 'expired' (bitti) */
+    public static function trialNotice(string $to, string $name, string $business, string $mode, ?int $bid = null): bool
+    {
+        $link = Mailer::url('/panel/#/paketim');
+        if ($mode === 'expired') {
+            return Mailer::sendTemplate($to, 'DNL Station deneme süreniz sona erdi', [
+                'preheader' => "$business için deneme süreniz doldu. Kayıtlarınız güvende.",
+                'title' => 'Deneme süreniz sona erdi',
+                'intro' => [self::first($name) . ', ' . $business . ' için 7 günlük deneme süreniz doldu. Kayıtlarınız silinmedi; bir paket seçtiğinizde panel kaldığı yerden açılır.'],
+                'button' => ['Paket seçin', $link],
+                'note' => 'Sorularınız için WhatsApp (+90 537 762 07 08) ya da support@dnlstation.com.tr adresinden bize ulaşabilirsiniz.',
+            ], 'trial_expired', $bid);
+        }
+        return Mailer::sendTemplate($to, 'DNL Station deneme süreniz 2 gün içinde bitiyor', [
+            'preheader' => "$business için deneme süreniz 2 gün içinde bitiyor.",
+            'title' => 'Deneme süreniz 2 gün içinde bitiyor',
+            'intro' => [self::first($name) . ', ' . $business . ' için deneme süreniz yakında doluyor. Verileriniz korunur; kesintisiz devam etmek için bir paket seçebilirsiniz.'],
+            'button' => ['Paketleri görüntüle', $link],
+            'after' => ['Ödeme açıklamasına işletme kodunuzu yazmanız yeterli; ödemeniz onaylanınca paketiniz aynı gün aktif edilir.'],
+            'note' => 'Otomatik çekim yapılmaz. Bu e-postayı deneme süreniz bittikten sonra da almaya devam etmeyeceksiniz.',
+        ], 'trial_soon', $bid);
+    }
+
     public static function test(string $to): array
     {
         return \Dnl\Core\MailTemplate::render([

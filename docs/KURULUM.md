@@ -20,6 +20,11 @@ cPanel → Terminal → `bash public_html/_app/eposta.sh`
 - Kayıt sırasında SMS doğrulaması için `signup_otp` = `true` yapın. Bu, ön yüzdeki OTP adımı eklenene kadar kayıtları durduracağı için son adımda açın.
 - Yönetici panelinde **Sistem** sayfasında "SMS gönderimi" kontrolü durumu gösterir.
 
+## Deneme hatırlatmaları (cron)
+- cPanel → **Cron Jobs** → Ortak (Common Settings): **Her gün** (Once Per Day), saat **09:00**.
+- Komut: `php /home/KULLANICI/public_html/_app/hatirlatma.php` (KULLANICI yerine cPanel kullanıcı adınızı yazın).
+- Her işletme için her aşama yalnızca bir kez gönderilir: 2 gün kala ve süre dolunca.
+
 ## Ana yönetici hesabı
 cPanel → Terminal → `bash public_html/_app/yonetici.sh`
 - **1** yeni yönetici, **2** şifre sıfırlama, **3** Authenticator sıfırlama (telefon kaybolursa).
