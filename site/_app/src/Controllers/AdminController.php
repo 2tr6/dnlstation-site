@@ -88,6 +88,11 @@ final class AdminController
         $w = self::stateSql('expiring', $p);
         $expiring = Db::all("SELECT b.*, u.name AS owner_name, u.email AS owner_email, u.phone AS owner_phone
             FROM businesses b LEFT JOIN users u ON u.business_id = b.id AND u.role = 'owner' WHERE 1=1 $w ORDER BY b.id DESC LIMIT 20", $p);
+        // Ödeme bekleyenler: süresi dolmuş, dondurulmamış, ömür boyu olmayan işletmeler (en son bitenden)
+        $p = [];
+        $w = self::stateSql('expired', $p);
+        $awaiting = Db::all("SELECT b.*, u.name AS owner_name, u.email AS owner_email, u.phone AS owner_phone
+            FROM businesses b LEFT JOIN users u ON u.business_id = b.id AND u.role = 'owner' WHERE 1=1 $w ORDER BY b.id DESC LIMIT 10", $p);
         $activeToday = (int)Db::value('SELECT COUNT(DISTINCT business_id) FROM users WHERE last_login_at >= :d', ['d' => gmdate('Y-m-d H:i:s', time() - 86400)]);
         return [
             'counts' => ['all' => $c('all'), 'trial' => $c('trial'), 'active' => $c('active'), 'expired' => $c('expired'), 'suspended' => $c('suspended'), 'expiring' => $c('expiring'), 'lifetime' => $c('lifetime')],
@@ -99,6 +104,7 @@ final class AdminController
             'revenue_30d_cents' => $rev30, 'revenue_all_cents' => $revAll,
             'recent' => array_map([self::class, 'bizOut'], $recent),
             'expiring' => array_map([self::class, 'bizOut'], $expiring),
+            'awaiting' => array_map([self::class, 'bizOut'], $awaiting),
             'plans' => array_map(static fn($k, $v) => ['key' => $k, 'name' => $v['name'], 'monthly' => $v['monthly'], 'yearly' => $v['yearly']], array_keys(Subscription::PLANS), Subscription::PLANS),
         ];
     }

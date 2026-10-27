@@ -20,7 +20,29 @@ export function zReport(z, bizName) {
     z.counted_cash_cents !== null ? row('Sayılan nakit', money(z.counted_cash_cents)) : null,
     diff !== null ? row('Fark', (diff > 0 ? '+' : '') + money(diff), diff === 0 ? 'ok' : 'bad') : null,
     h('hr'), row('Hesap sayısı', String(z.tickets)), row('İptal', String(z.voids)),
+    z.top_products && z.top_products.length ? [h('hr'), h('div', { class: 'z-sub' }, 'En çok satanlar'),
+      ...z.top_products.map((p) => row(`${p.name} × ${p.qty}`, money(p.total_cents)))] : null,
     z.note ? h('p', { class: 'muted sm' }, 'Not: ' + z.note) : null);
+}
+/** Paylaşılabilir düz metin özet (WhatsApp, not, e-posta) */
+export function zText(z, bizName) {
+  const L = [`${bizName} · Z Raporu #${z.id}`, `${dateTime(z.opened_at)} → ${z.closed_at ? dateTime(z.closed_at) : 'açık'}`, '',
+    `Toplam tahsilat: ${money(z.revenue_cents)}`, `Nakit: ${money(z.cash_cents)} · Kart: ${money(z.card_cents)}${z.other_cents ? ' · Diğer: ' + money(z.other_cents) : ''}`,
+    `Oyun: ${money(z.game_cents)} · Ürün: ${money(z.items_cents)}`, `Hesap: ${z.tickets} · İptal: ${z.voids}`];
+  if (z.expense_cents) L.push(`Giderler: −${money(z.expense_cents)}`);
+  if (z.counted_cash_cents !== null && z.counted_cash_cents !== undefined) {
+    const d = z.counted_cash_cents - z.expected_cash_cents;
+    L.push(`Sayılan nakit: ${money(z.counted_cash_cents)} (fark ${d > 0 ? '+' : ''}${money(d)})`);
+  }
+  if (z.top_products && z.top_products.length) { L.push('', 'En çok satanlar:'); z.top_products.forEach((p) => L.push(`• ${p.name} × ${p.qty} — ${money(p.total_cents)}`)); }
+  return L.join('\n');
+}
+async function shareText(title, text) {
+  try {
+    if (navigator.share) { await navigator.share({ title, text }); return; }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
+  try { await navigator.clipboard.writeText(text); toast('Rapor metni kopyalandı; WhatsApp veya nota yapıştırabilirsiniz.', 'good', 4000); }
+  catch { toast('Paylaşılamadı. Yazdır seçeneğini kullanın.', 'bad'); }
 }
 export function printNode(node) {
   const wrap = document.createElement('div'); wrap.className = 'print-only'; add(wrap, node.cloneNode(true));
@@ -61,6 +83,7 @@ export function shiftView(ctx) {
       const ok = h('button', { class: 'btn btn-primary', type: 'button' }, 'Kasayı kapat ve Z raporu al');
       add(box, h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', null, 'Açık vardiya'), h('span', { class: 'chip on' }, h('i'), 'Açık')),
         h('p', { class: 'muted' }, `${dateTime(s.opened_at)} · ${s.opened_by || ''}`), stats),
+      s.open_tables ? h('div', { class: 'banner warn' }, icon('alert', 18), h('span', null, `${s.open_tables} masa hâlâ açık. Kasayı kapatmadan önce bu masaların hesabını alın. `), h('a', { href: '#/masalar' }, 'Masalara git')) : null,
       h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', null, 'Kasayı kapat')),
         h('p', { class: 'muted' }, 'Çekmecedeki nakdi sayıp girin. Sistem beklenen tutarla karşılaştırıp farkı rapora yazar. Açık masa varken kasa kapatılamaz.'),
         h('div', { class: 'form narrow' }, field('Sayılan nakit (₺)', counted), field('Not', note), ok)));
@@ -78,7 +101,7 @@ export function shiftView(ctx) {
   function k(l, v) { return h('div', { class: 'kpi' }, h('div', null, h('small', null, l), h('b', { class: 'mono' }, v))); }
   function showZ(z) {
     const node = zReport(z, me.business.name);
-    const m = modal({ title: 'Z Raporu', body: node, actions: [h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => printNode(node) }, icon('print', 16), 'Yazdır'), h('button', { class: 'btn btn-primary', type: 'button', onclick: () => m.close() }, 'Tamam')] });
+    const m = modal({ title: 'Z Raporu', body: node, actions: [h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => shareText('Z Raporu', zText(z, me.business.name)) }, icon('copy', 16), 'Paylaş'), h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => printNode(node) }, icon('print', 16), 'Yazdır'), h('button', { class: 'btn btn-primary', type: 'button', onclick: () => m.close() }, 'Tamam')] });
   }
   async function loadHist() {
     try {

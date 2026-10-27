@@ -45,6 +45,15 @@ try:
             page.screenshot(path=f'{SHOTS}/adm-{label}-detay.png', full_page=True)
             over = page.evaluate('document.documentElement.scrollWidth > window.innerWidth + 1')
             check(f'[{label}] Detay sayfasında yatay taşma yok', not over)
+            # Hızlı ödeme: Ödemeler → Ödeme al → DNL koduyla ara → ödeme penceresi doğrudan açılır
+            page.goto(BASE + '/yonetim/#/odemeler'); page.click('.toolbar button:has-text("Ödeme al")')
+            page.wait_for_selector('.modal input[name=q]'); page.fill('.modal input[name=q]', 'DNL-00001')
+            page.wait_for_selector('.qp-row', timeout=6000); page.locator('.qp-row').first.click()
+            page.wait_for_selector('.modal input[name=amount]', timeout=8000)
+            import re as _re
+            check(f'[{label}] Ödeme al → arama → ödeme penceresi açılır', bool(_re.search(r'#/isletme/\d+$', page.url)), page.url)
+            page.goto(BASE + '/yonetim/#/genel'); page.wait_for_selector('h2:has-text("Ödeme bekleyenler")', timeout=8000)
+            check(f'[{label}] Genel bakışta ödeme bekleyenler kartı', page.locator('h2:has-text("Ödeme bekleyenler")').count() == 1)
             for r in ['odemeler', 'akis', 'eposta', 'guvenlik', 'sistem', 'duyuru', 'ayarlar', 'kayitlar', 'hesap', 'isletmeler']:
                 page.goto(BASE + '/yonetim/#/' + r); page.wait_for_timeout(600)
                 check(f'[{label}] #{r} taşma yok', not page.evaluate('document.documentElement.scrollWidth > window.innerWidth + 1'))

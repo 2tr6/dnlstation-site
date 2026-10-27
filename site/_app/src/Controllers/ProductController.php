@@ -18,7 +18,19 @@ final class ProductController
     public static function menu(): array
     {
         [, $b] = Perm::need('sales.quick');
-        return ['products' => Products::list((int)$b['id'], true)];
+        $bid = (int)$b['id'];
+        // Son 30 günde satılan adet: ürün seçicide "Sık satılanlar" için
+        $sold = [];
+        foreach (Db::all("SELECT i.product_id AS pid, SUM(i.qty) AS q FROM ticket_items i JOIN tickets t ON t.id = i.ticket_id
+            WHERE t.business_id = :b AND t.status = 'paid' AND t.closed_at >= :f AND i.product_id IS NOT NULL GROUP BY i.product_id", ['b' => $bid, 'f' => gmdate('Y-m-d H:i:s', time() - 30 * 86400)]) as $r) {
+            $sold[(int)$r['pid']] = (int)$r['q'];
+        }
+        $products = Products::list($bid, true);
+        foreach ($products as &$p) {
+            $p['sold_30d'] = $sold[(int)$p['id']] ?? 0;
+        }
+        unset($p);
+        return ['products' => $products];
     }
 
     public static function index(): array

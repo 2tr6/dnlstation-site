@@ -19,7 +19,7 @@ final class ShiftController
         $cur = Shifts::current((int)$b['id']);
         // Personel beklenen nakdi görmez (kör sayım); yöneticiler görür
         if ($cur !== null && !Perm::can($u, 'reports.view', $b)) {
-            $cur = ['id' => $cur['id'], 'opened_at' => $cur['opened_at'], 'opened_by' => $cur['opened_by'], 'tickets' => $cur['tickets']];
+            $cur = ['id' => $cur['id'], 'opened_at' => $cur['opened_at'], 'opened_by' => $cur['opened_by'], 'tickets' => $cur['tickets'], 'open_tables' => $cur['open_tables'] ?? null];
         }
         return ['shift' => $cur, 'can_see_totals' => Perm::can($u, 'reports.view', $b)];
     }

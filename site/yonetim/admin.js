@@ -126,7 +126,7 @@ function route() {
   if (!state.me) return;
   const parts = location.hash.replace(/^#\/?/, '').split('/');
   let name = parts[0] || 'genel';
-  if (name === 'isletme' && /^\d+$/.test(parts[1] || '')) { render('İşletme', 'isletmeler', (m) => detailView(m, parseInt(parts[1], 10))); return; }
+  if (name === 'isletme' && /^\d+$/.test(parts[1] || '')) { render('İşletme', 'isletmeler', (m) => detailView(m, parseInt(parts[1], 10), parts[2] === 'odeme')); return; }
   if (!ROUTES[name]) name = 'genel';
   const [title, , view] = ROUTES[name];
   render(title, name, view);
@@ -166,6 +166,12 @@ boot();
 /* ---------- Ortak ---------- */
 const kpi = (label, value, href, cls, ic) => h(href ? 'a' : 'div', { class: 'kpi' + (cls ? ' ' + cls : ''), href: href || null },
   ic ? h('span', { class: 'k-ic' }, icon(ic, 18)) : null, h('div', null, h('small', null, label), h('b', { class: 'mono' }, value)));
+/** Satır + tek tık "Ödeme al" (bekleyen işler listeleri için) */
+function payRow(b) {
+  return h('div', { class: 'biz-row' },
+    h('a', { class: 'br-main', href: '#/isletme/' + b.id }, h('b', null, b.name), h('small', { class: 'muted' }, [b.owner_name, b.owner_phone || b.owner_email].filter(Boolean).join(' · '))),
+    h('div', { class: 'br-act' }, stateTag(b.state), h('a', { class: 'btn btn-primary sm', href: '#/isletme/' + b.id + '/odeme' }, icon('wallet', 14), 'Ödeme al')));
+}
 function bizRow(b) {
   return h('a', { class: 'biz-row', href: '#/isletme/' + b.id },
     h('div', { class: 'br-main' }, h('b', null, b.name), h('small', { class: 'muted' }, [b.owner_name, b.owner_email].filter(Boolean).join(' · '))),
@@ -201,10 +207,12 @@ function overviewView(main) {
       h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', null, 'Yeni kayıtlar (30 gün)')),
         h('div', { class: 'spark', role: 'img', 'aria-label': 'Son 30 günde günlük yeni kayıt' }, o.signups.map((x) => h('i', { title: `${x.date}: ${x.count}`, style: { height: Math.max(3, Math.round(x.count / maxS * 100)) + '%' } })))),
       h('div', { class: 'grid2' },
+        h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', null, 'Ödeme bekleyenler'), h('a', { class: 'btn btn-ghost sm', href: '#/isletmeler?d=expired' }, 'Tümü')),
+          o.awaiting && o.awaiting.length ? h('div', { class: 'biz-list' }, o.awaiting.map(payRow)) : h('p', { class: 'muted sm' }, 'Süresi dolup ödeme bekleyen işletme yok.')),
         h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', null, 'Süresi yaklaşanlar'), h('a', { class: 'btn btn-ghost sm', href: '#/isletmeler?d=expiring' }, 'Tümü')),
-          o.expiring.length ? h('div', { class: 'biz-list' }, o.expiring.map(bizRow)) : h('p', { class: 'muted sm' }, '7 gün içinde süresi dolacak işletme yok.')),
-        h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', null, 'Son kayıtlar'), h('a', { class: 'btn btn-ghost sm', href: '#/isletmeler' }, 'Tümü')),
-          o.recent.length ? h('div', { class: 'biz-list' }, o.recent.map(bizRow)) : h('p', { class: 'muted sm' }, 'Henüz kayıt yok.'))));
+          o.expiring.length ? h('div', { class: 'biz-list' }, o.expiring.map(payRow)) : h('p', { class: 'muted sm' }, '7 gün içinde süresi dolacak işletme yok.'))),
+      h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', null, 'Son kayıtlar'), h('a', { class: 'btn btn-ghost sm', href: '#/isletmeler' }, 'Tümü')),
+        o.recent.length ? h('div', { class: 'biz-list' }, o.recent.map(bizRow)) : h('p', { class: 'muted sm' }, 'Henüz kayıt yok.')));
   })();
 }
 
@@ -236,9 +244,13 @@ function businessesView(main) {
 }
 
 /* ---------- İşletme detayı ---------- */
-function detailView(main, id) {
+function detailView(main, id, openPay) {
   let d;
-  const load = async () => { try { d = await get('/admin/businesses/' + id); if (!plans.length) plans = (await get('/admin/overview')).plans; render(); } catch (e) { fill(main, empty(e.message)); } };
+  const load = async () => {
+    try { d = await get('/admin/businesses/' + id); if (!plans.length) plans = (await get('/admin/overview')).plans; render(); } catch (e) { fill(main, empty(e.message)); return; }
+    // "Ödeme al" kısayolundan gelindiyse ödeme penceresi doğrudan açılır (yenilemede tekrar açılmaz)
+    if (openPay) { openPay = false; history.replaceState(null, '', '#/isletme/' + id); paymentModal(); }
+  };
   const set = (x) => { d = x; render(); };
   const action = (btn, path, body, msg) => busy(btn, async () => { try { set(await post(path, body)); if (msg) toast(msg, 'good'); } catch (e) { fail(e); } });
   function render() {
@@ -616,6 +628,8 @@ function paymentsView(main) {
   (async () => {
     let r;
     try { r = await get('/admin/payments'); } catch (e) { add(main, empty(e.message)); return; }
+    add(main, h('div', { class: 'toolbar' }, h('button', { class: 'btn btn-primary', type: 'button', onclick: quickPay }, icon('wallet', 16), 'Ödeme al'),
+      h('span', { class: 'muted sm' }, 'Havale gelince: işletme adı veya DNL kodu ile bulun, paketi seçip kaydedin.')));
     add(main,
       h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', null, 'Aylık tahsilat')),
         r.by_month.length ? h('ul', { class: 'list' }, r.by_month.map((m) => h('li', null, h('b', null, new Intl.DateTimeFormat('tr-TR', { month: 'long', year: 'numeric' }).format(new Date(m.month + '-15'))), h('b', { class: 'mono' }, money(m.total_cents))))) : h('p', { class: 'muted sm' }, 'Henüz ödeme yok.')),
@@ -629,6 +643,27 @@ function paymentsView(main) {
             busy(btn, async () => { try { await post(`/admin/payments/${p.id}/void`, {}); toast('Ödeme kaydı iptal edildi.', 'good'); render('Ödemeler', 'odemeler', paymentsView); } catch (e) { fail(e); } });
           } }, 'İptal'))))) : h('p', { class: 'muted sm' }, 'Henüz ödeme yok.')));
   })();
+}
+
+/** Ödeme al: işletmeyi ad / DNL kodu / telefon / e-posta ile bul, ödeme penceresiyle aç */
+function quickPay() {
+  const q = inp('q', { type: 'search', placeholder: 'İşletme adı, DNL-00012, telefon veya e-posta', autocomplete: 'off', autofocus: true });
+  const list = h('div', { class: 'biz-list qp-list' }, h('p', { class: 'muted sm' }, 'Aramak için yazın.'));
+  let t = null, seq = 0;
+  const m = modal({ title: 'Ödeme al', body: h('div', { class: 'form' }, q, list) });
+  const search = async () => {
+    const term = q.value.trim(); const my = ++seq;
+    if (term.length < 2) { fill(list, h('p', { class: 'muted sm' }, 'En az 2 karakter yazın.')); return; }
+    try {
+      const r = await get('/admin/businesses?q=' + encodeURIComponent(term));
+      if (my !== seq) return; // eski yanıt yeni aramayı ezmesin
+      fill(list, ...(r.items.length ? r.items.slice(0, 8).map((b) => h('button', { type: 'button', class: 'biz-row qp-row', onclick: () => { m.close(); location.hash = '#/isletme/' + b.id + '/odeme'; } },
+        h('div', { class: 'br-main' }, h('b', null, b.name), h('small', { class: 'muted' }, ['DNL-' + String(b.id).padStart(5, '0'), b.owner_name, b.owner_phone].filter(Boolean).join(' · '))),
+        stateTag(b.state))) : [h('p', { class: 'muted sm' }, 'Eşleşen işletme yok.')]));
+    } catch (e) { if (my === seq) fill(list, h('p', { class: 'muted sm' }, e.message)); }
+  };
+  q.addEventListener('input', () => { clearTimeout(t); t = setTimeout(search, 250); });
+  setTimeout(() => q.focus(), 50);
 }
 
 /* ---------- Duyuru ---------- */
