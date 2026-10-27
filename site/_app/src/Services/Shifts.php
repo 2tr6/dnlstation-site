@@ -60,6 +60,12 @@ final class Shifts
         }
         $t = Db::one("SELECT COUNT(*) AS cnt, COALESCE(SUM(total_cents),0) AS total, COALESCE(SUM(discount_cents),0) AS disc, COALESCE(SUM(game_cents),0) AS game, COALESCE(SUM(items_cents),0) AS items FROM tickets WHERE business_id = :b AND shift_id = :s AND status = 'paid'", ['b' => $bid, 's' => $shift['id']]);
         $voids = (int)Db::value("SELECT COUNT(*) FROM tickets WHERE business_id = :b AND status = 'void' AND closed_at >= :o AND closed_at <= :c", ['b' => $bid, 'o' => $shift['opened_at'], 'c' => $shift['closed_at'] ?? '9999-12-31 23:59:59']);
+        // En çok satan ürünler (bu vardiyada ödenen hesaplar) ve kapanış öncesi açık masa sayısı
+        $top = Db::all("SELECT i.name, SUM(i.qty) AS qty, SUM(i.total_cents) AS total FROM ticket_items i JOIN tickets t ON t.id = i.ticket_id
+            WHERE t.business_id = :b AND t.shift_id = :s AND t.status = 'paid' GROUP BY i.name ORDER BY qty DESC, total DESC LIMIT 5", ['b' => $bid, 's' => $shift['id']]);
+        $openTables = $shift['closed_at'] === null
+            ? (int)Db::value('SELECT COUNT(*) FROM play_sessions WHERE business_id = :b AND ended_at IS NULL', ['b' => $bid])
+            : null;
         return [
             'id' => (int)$shift['id'],
             'opened_at' => Db::iso($shift['opened_at']),
@@ -84,6 +90,8 @@ final class Shifts
             'expected_cash_cents' => (int)$shift['opening_cash_cents'] + $by['cash'] + $col['cash'] - $exp['cash'],
             'counted_cash_cents' => $shift['counted_cash_cents'] !== null ? (int)$shift['counted_cash_cents'] : null,
             'note' => $shift['note'],
+            'top_products' => array_map(static fn($r) => ['name' => (string)$r['name'], 'qty' => (int)$r['qty'], 'total_cents' => (int)$r['total']], $top),
+            'open_tables' => $openTables,
         ];
     }
 

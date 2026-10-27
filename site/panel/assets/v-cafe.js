@@ -13,15 +13,21 @@ export function invalidateMenu() { menuCache = null; }
 
 /** Kategori + arama ile ürün ızgarası */
 function productGrid(products, onPick) {
-  const cats = ['Tümü', ...Array.from(new Set(products.map((p) => p.category)))];
-  let cat = 'Tümü', q = '';
+  // Sık satılanlar: son 30 günde en çok satılan ilk 8 ürün (en az 3 farklı ürün satıldıysa gösterilir)
+  const POP = 'Sık satılanlar';
+  const popular = products.filter((p) => (p.sold_30d || 0) > 0).sort((a, b) => b.sold_30d - a.sold_30d).slice(0, 8);
+  const hasPop = popular.length >= 3;
+  const cats = [...(hasPop ? [POP] : []), 'Tümü', ...Array.from(new Set(products.map((p) => p.category)))];
+  let cat = hasPop ? POP : 'Tümü', q = '';
   const search = h('input', { class: 'inp', type: 'search', placeholder: 'Ürün ara', 'aria-label': 'Ürün ara', autocomplete: 'off' });
   const chips = h('div', { class: 'chips' });
   const grid = h('div', { class: 'pgrid' });
   const norm = (s) => s.toLocaleLowerCase('tr');
   const render = () => {
     fill(chips, ...cats.map((c) => h('button', { type: 'button', class: 'chip-btn' + (c === cat ? ' on' : ''), onclick: () => { cat = c; render(); } }, c)));
-    const list = products.filter((p) => (cat === 'Tümü' || p.category === cat) && (!q || norm(p.name).includes(norm(q))));
+    // Aramada kategori yok sayılır: kullanıcı her zaman tüm ürünlerde arar
+    const list = q ? products.filter((p) => norm(p.name).includes(norm(q)))
+      : cat === POP ? popular : products.filter((p) => cat === 'Tümü' || p.category === cat);
     fill(grid, ...(list.length ? list.map((p) => {
       const out = p.track_stock && p.stock_qty <= 0;
       return h('button', { type: 'button', class: 'pcard' + (out ? ' out' : ''), disabled: out, onclick: (ev) => onPick(p, ev.currentTarget) },
