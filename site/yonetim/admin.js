@@ -306,8 +306,16 @@ function detailView(main, id) {
     const on = !d.business.lifetime;
     const f = h('form', { class: 'form', novalidate: true },
       h('p', { class: 'muted' }, on ? 'İşletmenin süresi hiç dolmaz; deneme ve ücretli dönem tarihleri dikkate alınmaz. Paket sınırları geçerliliğini korur.' : 'Ömür boyu üyelik kaldırılır; işletme mevcut deneme/ücretli dönem tarihlerine göre çalışır.'),
-      field('Neden', inp('reason', { maxlength: 200, placeholder: on ? 'ör. Kurucu müşteri, iş ortağı' : 'ör. Anlaşma sona erdi' })));
-    formModal(on ? 'Ömür boyu üyelik ver' : 'Ömür boyu üyeliği kaldır', f, on ? 'Ömür boyu yap' : 'Kaldır', () => post(`/admin/businesses/${id}/lifetime`, { on, reason: f.querySelector('[name=reason]').value }), !on);
+      field('Neden', inp('reason', { maxlength: 200, placeholder: on ? 'ör. Kurucu müşteri, iş ortağı' : 'ör. Anlaşma sona erdi' })),
+      ...(on ? [h('div', { class: 'grid2' }, field('Alınan tutar (₺, isteğe bağlı)', inp('amount', { inputmode: 'decimal', class: 'inp mono', placeholder: 'ör. 9990' })),
+        field('Ödeme yöntemi', sel('method', [['havale', 'Havale / EFT'], ['nakit', 'Nakit'], ['kart', 'Kart'], ['diger', 'Diğer']], 'havale')))] : []));
+    formModal(on ? 'Ömür boyu üyelik ver' : 'Ömür boyu üyeliği kaldır', f, on ? 'Ömür boyu yap' : 'Kaldır', () => {
+      // Sunucu TL metni bekler (ör. 9990 ya da 9990,50); binlik noktaları kaldırılır
+      const raw = (f.querySelector('[name=amount]')?.value || '').replace(/\s/g, '').replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.');
+      const body = { on, reason: f.querySelector('[name=reason]').value };
+      if (on) { body.method = f.querySelector('[name=method]')?.value || 'havale'; if (raw) body.amount = raw; }
+      return post(`/admin/businesses/${id}/lifetime`, body);
+    }, !on);
   }
   function limitsModal() {
     const b = d.business;
@@ -558,11 +566,36 @@ function systemView(main) {
         h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', null, 'Bakım işlemleri')),
           h('div', { class: 'row-wrap' }, gcBtn, clrBtn, h('a', { class: 'btn btn-ghost sm', href: '#/eposta' }, icon('mail', 16), 'E-posta testi')),
           h('dl', { class: 'dl', style: { marginTop: '14px' } }, ...Object.entries({ 'PHP': s.server.php, 'Çalışma': s.server.sapi, 'Bellek sınırı': s.server.memory_limit, 'Zaman aşımı': s.server.max_execution_time + ' sn', 'Sunucu saati (UTC)': s.server.time_utc }).flatMap(([k, v]) => [h('dt', null, k), h('dd', { class: 'mono' }, String(v))])))),
+      backupCard(),
       h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', null, 'Veritabanı tabloları')),
         h('div', { class: 'tbl-chips' }, s.tables.map((t) => h('span', { class: 'tag' }, `${t.table}: ${t.rows.toLocaleString('tr-TR')}`)))),
       h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', null, `Sistem hata kaydı (${s.errors.length})`)),
         s.errors.length ? h('ul', { class: 'list errs' }, s.errors.map((e) => h('li', null, h('div', null, h('b', { class: 'mono' }, e.type || 'Kayıt'), ' ', h('span', { class: 'muted sm' }, e.context), h('div', { class: 'mono sm err-msg' }, e.message)), h('small', { class: 'muted r' }, e.at ? dateTime(e.at) : '')))) : h('div', { class: 'all-good' }, icon('check', 20), h('span', null, 'Kayıtlı sistem hatası yok.'))));
   })();
+}
+
+/* ---------- Veritabanı yedekleri ---------- */
+function backupCard() {
+  const box = h('section', { class: 'card' });
+  const draw = (d) => {
+    const runBtn = h('button', { class: 'btn btn-primary sm', type: 'button' }, icon('refresh', 16), 'Şimdi yedek al');
+    runBtn.onclick = () => busy(runBtn, async () => { try { const r = await post('/admin/backups/run', {}); toast(r.message, 'good', 6000); draw(r); } catch (e) { fail(e); } });
+    const kb = (n) => n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+    fill(box,
+      h('div', { class: 'card-h' }, h('h2', null, 'Veritabanı yedekleri'), h('span', { class: 'tag' }, `${d.items.length} / ${d.keep} tutuluyor`)),
+      h('p', { class: 'muted sm' }, 'Her hafta Pazar 05:00\'te otomatik alınır (cPanel cron). En yeni 14 yedek tutulur. Yedekler sunucuda, web\'den erişilemez şekilde saklanır.'),
+      h('div', { class: 'row-wrap', style: { marginBottom: '12px' } }, runBtn),
+      d.items.length ? h('ul', { class: 'list' }, d.items.map((it) => h('li', null,
+        h('div', null, h('b', { class: 'mono sm' }, it.name), ' ', h('span', { class: 'muted sm' }, kb(it.size))),
+        h('button', { class: 'btn btn-ghost sm', type: 'button', onclick: async () => {
+          if (!await confirmBox('Yedeği sil', `${it.name} kalıcı olarak silinsin mi? Bu işlem geri alınamaz.`, 'Sil', true)) return;
+          try { const r = await post('/admin/backups/delete', { name: it.name }); toast(r.message, 'good'); draw(r); } catch (e) { fail(e); }
+        } }, icon('trash', 14), 'Sil')))) : h('div', { class: 'muted sm' }, 'Henüz yedek yok.'));
+  };
+  (async () => {
+    try { draw(await get('/admin/backups')); } catch (e) { fill(box, h('div', { class: 'card-h' }, h('h2', null, 'Veritabanı yedekleri')), h('p', { class: 'muted' }, e.message)); }
+  })();
+  return box;
 }
 
 /* ---------- Ödemeler ---------- */

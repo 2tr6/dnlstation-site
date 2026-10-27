@@ -58,6 +58,14 @@ try:
     a.post(f'/admin/businesses/{bid}/limits', {'max_tables': None, 'max_staff': None})
     a.post(f'/admin/businesses/{bid}/lifetime', {'on': False, 'reason': 'deneme'})
     check('Sınır kaldırılınca paket sınırına döner', d(a.get(f'/admin/businesses/{bid}'))['business']['max_tables'] == 8)
+    before = sql("SELECT COUNT(*) FROM admin_payments WHERE business_id=?", (bid,))[0][0]
+    r = a.post(f'/admin/businesses/{bid}/lifetime', {'on': True, 'reason': 'Havale satışı', 'amount': '9990', 'method': 'havale'})
+    last = sql("SELECT amount_cents, period, method FROM admin_payments WHERE business_id=? ORDER BY id DESC LIMIT 1", (bid,))
+    check('Ömür boyu satışı gelir kaydına yazılır (9990 TL = 999000 kuruş)', r.status_code == 200 and sql("SELECT COUNT(*) FROM admin_payments WHERE business_id=?", (bid,))[0][0] == before + 1 and last[0] == (999000, 'omur', 'havale'), r.text[:200] + ' ' + str(last))
+    r = a.post(f'/admin/businesses/{bid}/lifetime', {'on': False, 'reason': 'deneme2'})
+    a.post(f'/admin/businesses/{bid}/lifetime', {'on': True, 'reason': 'tutarsız', 'amount': 'abc'})
+    check('Geçersiz tutar kayıt açmaz (yetki de değişmez)', d(a.get(f'/admin/businesses/{bid}'))['business']['lifetime'] is False and sql("SELECT COUNT(*) FROM admin_payments WHERE business_id=?", (bid,))[0][0] == before + 1)
+    a.post(f'/admin/businesses/{bid}/lifetime', {'on': False, 'reason': 'deneme3'})
     sql("UPDATE businesses SET trial_ends_at='2099-01-01 00:00:00' WHERE id=?", (bid,))
 
     print('== Bilgi, e-posta, sahiplik ==')
