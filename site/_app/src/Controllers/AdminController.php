@@ -116,8 +116,13 @@ final class AdminController
         $w = self::stateSql($state, $p);
         if ($q !== '') {
             $like = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], mb_strtolower($q)) . '%';
-            $w .= " AND (LOWER(b.name) LIKE :q ESCAPE '!' OR LOWER(u.email) LIKE :q2 ESCAPE '!' OR u.phone LIKE :q3 ESCAPE '!' OR b.phone LIKE :q4 ESCAPE '!' OR LOWER(u.name) LIKE :q5 ESCAPE '!')";
+            // İşletme kodu (DNL-00004) ile de bulunur: ödeme açıklamasındaki kodla doğrudan
+            $byId = preg_match('/^dnl-?0*(\d+)$/i', $q, $m) ? ' OR b.id = :rid' : '';
+            $w .= " AND (LOWER(b.name) LIKE :q ESCAPE '!' OR LOWER(u.email) LIKE :q2 ESCAPE '!' OR u.phone LIKE :q3 ESCAPE '!' OR b.phone LIKE :q4 ESCAPE '!' OR LOWER(u.name) LIKE :q5 ESCAPE '!'$byId)";
             $p += ['q' => $like, 'q2' => $like, 'q3' => $like, 'q4' => $like, 'q5' => $like];
+            if ($byId !== '') {
+                $p['rid'] = (int)$m[1];
+            }
         }
         $base = "FROM businesses b LEFT JOIN users u ON u.business_id = b.id AND u.role = 'owner' WHERE 1=1 $w";
         $total = (int)Db::value("SELECT COUNT(*) $base", $p);

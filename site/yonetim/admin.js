@@ -37,6 +37,7 @@ function loginView(msg) {
         await csrf();
         const r = await post('/admin/auth/login', { email: email.value, password: pw.value });
         state.csrf = r.csrf;
+        if (r.trusted) { await boot(); return; } // güvenilir cihaz: kod adımı atlanır
         codeView(card, r);
       } catch (err) { if (!showErrors(f, err)) fail(err); }
     });
@@ -62,14 +63,15 @@ function codeView(card, r) {
   } else {
     add(f, h('p', { class: 'muted' }, 'Authenticator uygulamasındaki 6 haneli kodu girin.'));
   }
-  add(f, field('Doğrulama kodu', code), go, h('button', { class: 'btn btn-ghost btn-block', type: 'button', onclick: () => loginView() }, 'Geri'));
+  const trust = toggle('trust', 'Bu cihazda 30 gün hatırla (kod sormaz)', false);
+  add(f, field('Doğrulama kodu', code), trust, go, h('button', { class: 'btn btn-ghost btn-block', type: 'button', onclick: () => loginView() }, 'Geri'));
   fill(card, h('div', { class: 'wm' }, 'DNL'), h('p', { class: 'eyebrow' }, 'Yönetim'), h('h1', null, r.next === 'setup' ? 'İki adımlı doğrulama' : 'Doğrulama kodu'), f);
   code.addEventListener('input', () => { code.value = code.value.replace(/\D/g, '').slice(0, 6); if (code.value.length === 6) f.requestSubmit(); });
   f.addEventListener('submit', (e) => {
     e.preventDefault();
     if (code.value.length !== 6) return;
     busy(go, async () => {
-      try { const x = await post('/admin/auth/verify', { code: code.value }); state.csrf = x.csrf; await boot(); }
+      try { const x = await post('/admin/auth/verify', { code: code.value, trust: f.querySelector('[name=trust]').checked }); state.csrf = x.csrf; await boot(); }
       catch (err) { code.value = ''; if (err.code === 'pending_expired') loginView(err.message); else fail(err); }
     });
   });
@@ -610,7 +612,11 @@ function paymentsView(main) {
         r.items.length ? h('ul', { class: 'list' }, r.items.map((p) => h('li', { class: p.voided ? 'void' : '' },
           h('div', null, h('a', { href: '#/isletme/' + p.business_id }, h('b', null, p.business_name || '#' + p.business_id)), ' ', h('span', { class: 'tag' }, `${PLAN[p.plan] || p.plan} · ${p.months} ay`), p.voided ? h('span', { class: 'tag bad' }, 'İptal') : null,
             h('div', { class: 'muted sm' }, `${dateTime(p.created_at)} · ${p.method}${p.note ? ' · ' + p.note : ''}`)),
-          h('b', { class: 'mono r' }, money(p.amount_cents))))) : h('p', { class: 'muted sm' }, 'Henüz ödeme yok.')));
+          h('div', { class: 'r' }, h('b', { class: 'mono' }, money(p.amount_cents)), p.voided ? null : h('button', { class: 'btn btn-ghost sm danger-t', type: 'button', onclick: async (ev) => {
+            const btn = ev.currentTarget;
+            if (!await confirmBox('Ödeme kaydını iptal et', `${p.business_name || '#' + p.business_id} · ${money(p.amount_cents)} kaydı iptal edilsin mi? Yalnızca en son kayıt iptal edilebilir; süre eski haline döner.`, 'İptal et', true)) return;
+            busy(btn, async () => { try { await post(`/admin/payments/${p.id}/void`, {}); toast('Ödeme kaydı iptal edildi.', 'good'); render('Ödemeler', 'odemeler', paymentsView); } catch (e) { fail(e); } });
+          } }, 'İptal'))))) : h('p', { class: 'muted sm' }, 'Henüz ödeme yok.')));
   })();
 }
 
