@@ -266,10 +266,14 @@ final class AuthController
     {
         $u = Auth::require();
         RateLimiter::enforce('verify-resend:' . $u['id'], 3, 3600, 'Kısa süre önce doğrulama e-postası gönderildi. Lütfen gelen kutunuzu ve spam klasörünü kontrol edin.');
-        if ($u['email_verified_at'] === null) {
-            self::sendVerification((int)$u['id'], $u['email'], $u['name']);
+        if ($u['email_verified_at'] !== null) {
+            throw new HttpError(409, 'E-posta adresiniz zaten doğrulanmış.', 'verified');
         }
-        return ['message' => 'Doğrulama e-postası gönderildi.'];
+        if (!self::sendVerification((int)$u['id'], $u['email'], $u['name'])) {
+            // Gönderim başarısızsa kullanıcıya "gönderildi" demeyiz
+            throw new HttpError(502, 'Doğrulama e-postası gönderilemedi: ' . (Mailer::$lastError ?: 'bilinmeyen hata') . ' Lütfen daha sonra tekrar deneyin veya destek ile iletişime geçin.', 'mail_failed');
+        }
+        return ['message' => 'Doğrulama e-postası gönderildi. Gelen kutunuzu ve spam klasörünü kontrol edin.'];
     }
 
     public static function me(): array
@@ -335,12 +339,12 @@ final class AuthController
         return ['message' => 'Şifreniz güncellendi. Diğer cihazlardaki oturumlar kapatıldı.', 'csrf' => Session::csrf()];
     }
 
-    private static function sendVerification(int $uid, string $email, string $name, bool $welcome = false, string $business = ''): void
+    private static function sendVerification(int $uid, string $email, string $name, bool $welcome = false, string $business = ''): bool
     {
         Tokens::revokeAll($uid, 'verify');
         [$sel, $val] = Tokens::create($uid, 'verify', self::VERIFY_TTL);
         $link = Mailer::url('/dogrula/#t=' . $sel . '.' . $val);
         $bid = (int)Db::value('SELECT business_id FROM users WHERE id = :u', ['u' => $uid]);
-        $welcome ? \Dnl\Services\Emails::welcomeVerify($email, $name, $business, $link, $bid) : \Dnl\Services\Emails::verify($email, $name, $link, $bid);
+        return $welcome ? \Dnl\Services\Emails::welcomeVerify($email, $name, $business, $link, $bid) : \Dnl\Services\Emails::verify($email, $name, $link, $bid);
     }
 }

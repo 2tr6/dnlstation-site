@@ -372,7 +372,9 @@ final class AdminController
             case 'send_reset':
                 Tokens::revokeAll($id, 'reset');
                 [$sel, $val] = Tokens::create($id, 'reset', 3600);
-                \Dnl\Services\Emails::reset($u['email'], $u['name'], Mailer::url('/sifre-yenile/#t=' . $sel . '.' . $val), true, (int)$u['business_id']);
+                if (!\Dnl\Services\Emails::reset($u['email'], $u['name'], Mailer::url('/sifre-yenile/#t=' . $sel . '.' . $val), true, (int)$u['business_id'])) {
+                    throw new HttpError(502, 'Şifre sıfırlama e-postası gönderilemedi: ' . (Mailer::$lastError ?: 'bilinmeyen hata'), 'mail_failed');
+                }
                 break;
             case 'resend_verify':
                 if ($u['email_verified_at'] !== null) {
@@ -380,7 +382,9 @@ final class AdminController
                 }
                 Tokens::revokeAll($id, 'verify');
                 [$sel, $val] = Tokens::create($id, 'verify', 172800);
-                \Dnl\Services\Emails::verify($u['email'], $u['name'], Mailer::url('/dogrula/#t=' . $sel . '.' . $val), (int)$u['business_id']);
+                if (!\Dnl\Services\Emails::verify($u['email'], $u['name'], Mailer::url('/dogrula/#t=' . $sel . '.' . $val), (int)$u['business_id'])) {
+                    throw new HttpError(502, 'Doğrulama e-postası gönderilemedi: ' . (Mailer::$lastError ?: 'bilinmeyen hata'), 'mail_failed');
+                }
                 break;
         }
         AdminAuth::log($aid, 'user.' . $action, 'user', $id, ['business' => (int)$u['business_id']]);
