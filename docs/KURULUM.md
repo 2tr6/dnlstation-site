@@ -2,6 +2,14 @@
 
 Panel kodları GitHub'a her gönderimde otomatik olarak `public_html`'e yüklenir. Sistemin çalışması için aşağıdaki adımları **bir kez** yapmanız yeterli. Şifreleri hiçbir yere (sohbet, e-posta, GitHub dosyası) yazmayın; yalnızca sunucudaki ayar dosyasına ve GitHub Secrets'a girin.
 
+## Kısa yol (telefondan da olur)
+1. Veritabanı + kullanıcıyı oluşturup kullanıcıyı **Tüm Ayrıcalıklar** ile ekleyin (aşağıda 1. adım).
+2. cPanel → **Terminal** → `bash public_html/_app/kurulum.sh` yazın, veritabanı şifresini girin.
+   Ayar dosyası ve anahtarlar otomatik oluşturulur, tablolar kurulur. Tekrar çalıştırmak güvenlidir
+   (ileride şema güncellemesi gerekirse aynı komut yeterli).
+
+Aşağıdaki adımlar elle kurulum içindir.
+
 ## 1. MySQL veritabanı
 cPanel → **MySQL® Veritabanları**
 1. Yeni veritabanı: `dnlstati_station` (örnek)
