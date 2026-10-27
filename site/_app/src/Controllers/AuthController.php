@@ -289,6 +289,7 @@ final class AuthController
                 'email' => $u['email'],
                 'role' => $u['role'],
                 'verified' => $u['email_verified_at'] !== null,
+                'verify_required' => (bool)Config::get('require_email_verification', true),
                 'must_change_password' => (int)$u['must_change_password'] === 1,
             ],
             'business' => [

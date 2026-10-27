@@ -151,7 +151,7 @@ function route() {
   const me = state.me;
   // Zorunlu şifre değişikliği
   if (me.user.must_change_password && name !== 'hesap') { location.replace('#/hesap'); return; }
-  if (me.user.role === 'owner' && !me.user.verified && name !== 'hesap') { location.replace('#/hesap'); return; }
+  if (me.user.role === 'owner' && me.user.verify_required && !me.user.verified && name !== 'hesap') { location.replace('#/hesap'); return; }
   // İlk kurulum
   if (!me.business.setup_done && can('settings.tables') && name === 'masalar') { location.replace('#/kurulum'); return; }
   let target = name;
