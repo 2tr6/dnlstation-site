@@ -691,6 +691,9 @@ final class AdminController
             }
             Db::exec('UPDATE email_log SET business_id = NULL WHERE business_id = :b', ['b' => $bid]);
             Db::exec('UPDATE security_events SET business_id = NULL WHERE business_id = :b', ['b' => $bid]);
+            Db::exec('UPDATE sms_log SET business_id = NULL WHERE business_id = :b', ['b' => $bid]);
+            // Silinen işletmenin tahsilat kayıtları da gider (yetim kayıt Ödemeler'de görünmesin)
+            Db::exec('DELETE FROM admin_payments WHERE business_id = :b', ['b' => $bid]);
             Db::exec('DELETE FROM businesses WHERE id = :b', ['b' => $bid]);
         });
         AdminAuth::log($aid, 'business.deleted', 'business', $bid, ['name' => $b['name']]);

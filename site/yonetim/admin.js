@@ -136,9 +136,11 @@ function render(title, active, view) {
   document.title = title + ' | DNL Yönetim';
   $('#top-title').textContent = title;
   $$('.nav-item').forEach((a) => a.classList.toggle('active', a.dataset.route === active));
-  const main = clear($('#main'));
+  // Her çizim kendi kabına yazar: geç gelen eski veri yeni sayfaya karışmaz (çift çizim olmaz)
+  const box = h('div', { class: 'view' });
+  clear($('#main')).append(box);
   window.scrollTo(0, 0);
-  current = view(main);
+  current = view(box);
 }
 
 async function boot() {
@@ -151,7 +153,7 @@ async function boot() {
     return;
   }
   shell();
-  if (!location.hash) location.replace('#/genel');
+  if (!location.hash) history.replaceState(null, '', '#/genel'); // olay tetiklemez: tek çizim
   route();
 }
 window.addEventListener('hashchange', route);
@@ -162,7 +164,8 @@ resetIdle();
 boot();
 
 /* ---------- Ortak ---------- */
-const kpi = (label, value, href, cls) => h(href ? 'a' : 'div', { class: 'kpi' + (cls ? ' ' + cls : ''), href: href || null }, h('div', null, h('small', null, label), h('b', { class: 'mono' }, value)));
+const kpi = (label, value, href, cls, ic) => h(href ? 'a' : 'div', { class: 'kpi' + (cls ? ' ' + cls : ''), href: href || null },
+  ic ? h('span', { class: 'k-ic' }, icon(ic, 18)) : null, h('div', null, h('small', null, label), h('b', { class: 'mono' }, value)));
 function bizRow(b) {
   return h('a', { class: 'biz-row', href: '#/isletme/' + b.id },
     h('div', { class: 'br-main' }, h('b', null, b.name), h('small', { class: 'muted' }, [b.owner_name, b.owner_email].filter(Boolean).join(' · '))),
@@ -181,12 +184,20 @@ function overviewView(main) {
       h('section', { class: 'card alerts-card' }, h('div', { class: 'card-h' }, h('h2', null, 'Sistem kontrolü'), h('a', { class: 'btn btn-ghost sm', href: '#/sistem' }, icon('server', 16), 'Ayrıntı')),
         o.alerts.length ? h('ul', { class: 'alerts' }, o.alerts.map((x) => h('li', { class: 'al ' + x.level }, h('i'), h('div', null, h('b', null, x.title), h('small', null, x.text)), x.link ? h('a', { class: 'btn btn-ghost sm', href: x.link }, 'Git') : null)))
           : h('div', { class: 'all-good' }, icon('check', 20), h('span', null, 'Her şey yolunda. Hata, başarısız e-posta veya şüpheli giriş yok.'))),
-      h('div', { class: 'kpis' },
-        kpi('Toplam işletme', String(c.all), '#/isletmeler'), kpi('Denemede', String(c.trial), '#/isletmeler?d=trial'),
-        kpi('Ücretli aktif', String(c.active), '#/isletmeler?d=active'), kpi('Süresi dolan', String(c.expired), '#/isletmeler?d=expired', c.expired ? 'warn' : ''),
-        kpi('7 gün içinde bitecek', String(c.expiring), '#/isletmeler?d=expiring', c.expiring ? 'warn' : ''), kpi('Dondurulan', String(c.suspended), '#/isletmeler?d=suspended'), kpi('Ömür boyu', String(c.lifetime), '#/isletmeler?d=lifetime')),
-      h('div', { class: 'kpis' }, kpi('Son 30 gün tahsilat', money(o.revenue_30d_cents), '#/odemeler'), kpi('Toplam tahsilat', money(o.revenue_all_cents), '#/odemeler'),
-        kpi('Yeni kayıt (7 / 30 gün)', `${o.new_7d} / ${o.new_30d}`), kpi('Son 24 saatte aktif', String(o.active_24h))),
+      h('div', { class: 'kpis kpis-3 kpis-hero' },
+        kpi('Son 30 gün tahsilat', money(o.revenue_30d_cents), '#/odemeler', 'hero', 'wallet'),
+        kpi('Ücretli aktif', String(c.active), '#/isletmeler?d=active', 'ok', 'check'),
+        kpi('Denemede', String(c.trial), '#/isletmeler?d=trial', '', 'clock')),
+      h('div', { class: 'kpis kpis-4' },
+        kpi('Toplam işletme', String(c.all), '#/isletmeler', '', 'box'),
+        kpi('7 gün içinde bitecek', String(c.expiring), '#/isletmeler?d=expiring', c.expiring ? 'warn' : '', 'calendar'),
+        kpi('Süresi dolan', String(c.expired), '#/isletmeler?d=expired', c.expired ? 'warn' : '', 'alert'),
+        kpi('Ömür boyu', String(c.lifetime), '#/isletmeler?d=lifetime', '', 'shield')),
+      h('div', { class: 'kpis kpis-4' },
+        kpi('Toplam tahsilat', money(o.revenue_all_cents), '#/odemeler', '', 'receipt'),
+        kpi('Yeni kayıt (7 / 30 gün)', `${o.new_7d} / ${o.new_30d}`, null, '', 'users'),
+        kpi('Son 24 saatte aktif', String(o.active_24h), null, '', 'activity'),
+        kpi('Dondurulan', String(c.suspended), '#/isletmeler?d=suspended', '', 'minus')),
       h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', null, 'Yeni kayıtlar (30 gün)')),
         h('div', { class: 'spark', role: 'img', 'aria-label': 'Son 30 günde günlük yeni kayıt' }, o.signups.map((x) => h('i', { title: `${x.date}: ${x.count}`, style: { height: Math.max(3, Math.round(x.count / maxS * 100)) + '%' } })))),
       h('div', { class: 'grid2' },

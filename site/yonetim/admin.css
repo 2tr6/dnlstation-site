@@ -58,3 +58,9 @@ textarea.inp{padding:12px 14px;min-height:88px;resize:vertical;line-height:1.5}
   .tabs .nav-item.active { color: var(--text); }
   .tabs .nav-item.active::before { content: ''; position: absolute; top: 0; left: 28%; right: 28%; height: 3px; border-radius: 0 0 3px 3px; background: var(--lilac, #a78bfa); }
 }
+
+/* Giriş kartı: ince marka çizgisi ve logo işareti */
+.login-card{position:relative;overflow:hidden}
+.login-card::before{content:'';position:absolute;inset:0 0 auto 0;height:2px;background:linear-gradient(90deg,transparent,var(--violet-2),var(--cyan),transparent)}
+.login-card .wm{display:inline-flex;align-items:center;gap:10px}
+.all-good{display:flex;align-items:center;gap:10px;padding:14px 16px;border-radius:var(--r);background:rgba(61,211,154,.07);border:1px solid rgba(61,211,154,.25);color:#BFF3DE}

@@ -163,8 +163,11 @@ function route() {
   document.title = r.title + ' | DNL Station';
   $('#top-title').textContent = r.title;
   document.querySelectorAll('.nav-item').forEach((a) => a.classList.toggle('active', a.dataset.route === target));
-  const main = clear($('#main'));
-  main.scrollTop = 0; window.scrollTo(0, 0);
+  const host = clear($('#main'));
+  host.scrollTop = 0; window.scrollTo(0, 0);
+  // Her çizim kendi kabına yazar: sekme değişince geç gelen veri yeni sayfaya karışmaz
+  const main = h('div', { class: 'view' });
+  host.append(main);
   const ctx = { main, me, refreshMe: async () => { await loadMe(); updateShiftChip(); }, updateShiftChip };
   let cleanup = null;
   try { cleanup = r.view(ctx) || null; } catch (e) { console.error(e); fail(e); }

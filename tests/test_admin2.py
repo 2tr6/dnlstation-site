@@ -138,6 +138,8 @@ try:
     r = a.post(f'/admin/businesses/{bid}/delete', {'confirm_name': 'Arena Yeni'})
     check('İşletme ve tüm verisi silinir', r.status_code == 200 and not sql('SELECT id FROM businesses WHERE id=?', (bid,)) and not sql('SELECT id FROM users WHERE business_id=?', (bid,)) and not sql('SELECT id FROM products WHERE business_id=?', (bid,)), r.text)
     check('Silme kayda geçer', any(x['action'] == 'business.deleted' for x in d(a.get('/admin/audit'))['items']))
+    check('Silinen işletmenin tahsilat kayıtları da silinir', not sql('SELECT id FROM admin_payments WHERE business_id=?', (bid,)))
+    check('Ödemeler listesinde yetim kayıt kalmaz', all(p['business_id'] != bid for p in d(a.get('/admin/payments'))['items']))
 finally:
     srv.stop()
 sys.exit(summary())
