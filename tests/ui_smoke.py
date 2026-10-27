@@ -65,7 +65,7 @@ try:
             page.wait_for_timeout(2100)
             t2 = page.locator('.tcard.busy .tc-time').inner_text()
             check(f'[{label}] Sayaç canlı ilerler', t1 != t2, (t1, t2))
-            page.locator('.tcard.busy').click()
+            page.locator('.tcard.busy .tc-time').click()
             page.wait_for_selector('.ss-hero')
             page.click('.modal button:has-text("Ürün ekle")')
             page.wait_for_selector('.pcard')
@@ -82,6 +82,21 @@ try:
             page.wait_for_selector('.toast.good:has-text("Hesap kapatıldı")', timeout=8000)
             page.wait_for_timeout(800)
             check(f'[{label}] Hesap kapanır, masa boşalır', page.locator('.tcard.busy').count() == 0)
+            # Karttan hızlı hesap
+            page.locator('.tcard.free').first.click(); page.click('.modal button:has-text("Masayı aç")')
+            page.wait_for_selector('.tcard.busy .tc-btn.pay', timeout=8000)
+            page.locator('.tcard.busy .tc-btn.pay').click(); page.wait_for_selector('.co-total')
+            page.click('.modal button:has-text("Ödemeyi al ve kapat")'); page.wait_for_selector('.toast.good:has-text("Hesap kapatıldı")', timeout=8000)
+            page.wait_for_timeout(800)
+            check(f'[{label}] Kart üzerindeki “Hesap” düğmesiyle hızlı kapanış', page.locator('.tcard.busy').count() == 0)
+            # Düzenleme modu: masa adını masalar ekranından değiştir
+            page.click('.toolbar button:has-text("Düzenle")'); page.wait_for_selector('.edit-bar:not([hidden])')
+            page.locator('.tcard[data-tid]').first.click(); page.wait_for_selector('.modal input[name=name]')
+            page.fill('.modal input[name=name]', 'VIP 1'); page.click('.modal button:has-text("Kaydet")')
+            page.wait_for_selector('.tc-name:has-text("VIP 1")', timeout=8000)
+            check(f'[{label}] Masa adı masalar ekranından değişir', True)
+            page.screenshot(path=f'{SHOTS}/{label}-6-duzenle.png', full_page=True)
+            page.click('.edit-bar button:has-text("Bitti")')
             # Diğer ekranlar
             for route in ['kafe', 'vardiya', 'raporlar', 'urunler', 'ayarlar', 'ayarlar/personel', 'ayarlar/ekran', 'ayarlar/kayit', 'hesap']:
                 page.goto(BASE + '/panel/#/' + route)

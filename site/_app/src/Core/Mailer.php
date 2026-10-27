@@ -6,8 +6,8 @@ namespace Dnl\Core;
 defined('DNL_APP') || exit;
 
 /**
- * E-posta gönderimi. Varsayılan: hosting'in PHP mail() fonksiyonu (cPanel'de hazır).
- * 'file' taşıyıcısı testler içindir. Başlık enjeksiyonuna karşı CR/LF temizlenir.
+ * E-posta gönderimi. Önerilen: 'smtp' (noreply hesabıyla kimlik doğrulamalı; Gmail/Outlook kabul eder).
+ * 'mail' = PHP mail(), 'file' = testler. Başlık enjeksiyonuna karşı CR/LF temizlenir.
  */
 final class Mailer
 {
@@ -38,9 +38,45 @@ final class Mailer
             $file = $dir . '/' . gmdate('Ymd-His') . '-' . bin2hex(random_bytes(3)) . '.eml';
             return (bool)file_put_contents($file, "To: $to\nSubject: $subject\n\n$body");
         }
+        if ($transport === 'smtp') {
+            return self::smtp((array)Config::get('mail.smtp', []), $from, $fromName, $to, $subjectEnc, $body);
+        }
         try {
             return mail($to, $subjectEnc, $body, implode("\r\n", $headers), '-f' . $from);
         } catch (\Throwable $e) {
+            Log::error($e, 'mail');
+            return false;
+        }
+    }
+
+    public static string $lastError = '';
+
+    /** RFC 5322 ileti oluşturup SMTP ile gönderir (gövde base64: Türkçe karakterler bozulmaz) */
+    public static function smtp(array $cfg, string $from, string $fromName, string $to, string $subjectEnc, string $body): bool
+    {
+        $domain = substr(strrchr($from, '@') ?: '@localhost', 1);
+        $msg = implode("\r\n", [
+            'Date: ' . date(DATE_RFC2822),
+            'From: =?UTF-8?B?' . base64_encode($fromName) . '?= <' . $from . '>',
+            'To: <' . $to . '>',
+            'Subject: ' . $subjectEnc,
+            'Message-ID: <' . bin2hex(random_bytes(12)) . '@' . $domain . '>',
+            'MIME-Version: 1.0',
+            'Content-Type: text/plain; charset=UTF-8',
+            'Content-Transfer-Encoding: base64',
+            '',
+            rtrim(chunk_split(base64_encode(str_replace("\n", "\r\n", $body)), 76, "\r\n")),
+        ]);
+        try {
+            $c = new Smtp($cfg);
+            $ok = $c->send($from, $to, $msg);
+            self::$lastError = $c->lastError;
+            if (!$ok) {
+                Log::error(new \RuntimeException('SMTP: ' . $c->lastError), 'mail');
+            }
+            return $ok;
+        } catch (\Throwable $e) {
+            self::$lastError = $e->getMessage();
             Log::error($e, 'mail');
             return false;
         }

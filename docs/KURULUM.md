@@ -8,6 +8,12 @@ Panel kodları GitHub'a her gönderimde otomatik olarak `public_html`'e yükleni
    Ayar dosyası ve anahtarlar otomatik oluşturulur, tablolar kurulur. Tekrar çalıştırmak güvenlidir
    (ileride şema güncellemesi gerekirse aynı komut yeterli).
 
+## E-posta (SMTP)
+cPanel → Terminal → `bash public_html/_app/eposta.sh`
+- noreply@ hesabının şifresini ve test için kendi e-posta adresinizi girin.
+- Araç bağlantı yollarını dener, test e-postası gönderir, çalışan ayarı ayar dosyasına yazar.
+- Gmail'de spam'e düşmemesi için: cPanel → **E-posta Teslim Edilebilirliği** → dnlstation.com.tr için SPF/DKIM "Geçerli" olmalı (değilse **Onar**).
+
 ## Ana yönetici hesabı
 cPanel → Terminal → `bash public_html/_app/yonetici.sh`
 - **1** yeni yönetici, **2** şifre sıfırlama, **3** Authenticator sıfırlama (telefon kaybolursa).

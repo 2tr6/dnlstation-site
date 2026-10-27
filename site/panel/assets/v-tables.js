@@ -1,6 +1,7 @@
 // Masalar ekranı: canlı masa durumu, oturum açma, ürün ekleme, hesap kapama
 import { state, h, $, $$, clear, icon, get, post, del, can, toast, fail, modal, confirmBox, money, dur, durShort, timeOnly, busy, seg, moneyInp, inputToCents, moneyStr, field, inp, beep, empty, METHOD_LABEL, ApiError, fill, add } from './core.js?v=1';
 import { productPicker } from './v-cafe.js?v=1';
+import { catalogEditors } from './editors.js?v=1';
 
 const POLL_MS = 5000;
 
@@ -12,13 +13,47 @@ export function tablesView(ctx) {
   let timer = null, ticker = null, stopped = false;
   const alerts = new Map(); // oturum -> uyarı durumu
   let openSheet = null;     // açık oturum penceresi { sid, update(s) }
+  let editing = false;      // düzenleme modu (masa adı/türü/ücret buradan değişir)
+  let cat = null;           // /catalog yanıtı (düzenleme modunda)
+  const canEdit = can('settings.tables');
+  const ed = catalogEditors({ get d() { return cat; }, set: (r) => { cat = r; load(false); } });
+  async function loadCat() { cat = await get('/catalog'); return cat; }
 
   const kpiBox = h('div', { class: 'kpis' });
   const chipBox = h('div', { class: 'chips', role: 'tablist', 'aria-label': 'Masa türü' });
   const grid = h('div', { class: 'tgrid', 'aria-live': 'off' });
+  const editBtn = canEdit ? h('button', { class: 'btn btn-ghost sm', type: 'button', onclick: () => setEditing(!editing) }, icon('edit', 16), 'Düzenle') : null;
   const toolbar = h('div', { class: 'toolbar' }, chipBox,
-    h('div', { class: 'tb-r' }, h('button', { class: 'btn btn-ghost sm', type: 'button', onclick: recentModal }, icon('undo', 16), 'Son hesaplar')));
-  add(main, kpiBox, toolbar, grid);
+    h('div', { class: 'tb-r' }, editBtn, h('button', { class: 'btn btn-ghost sm', type: 'button', onclick: recentModal }, icon('undo', 16), 'Son hesaplar')));
+  const editBar = h('div', { class: 'banner info edit-bar', hidden: true },
+    icon('edit', 18), h('span', { class: 'grow' }, 'Düzenleme modu: masaya dokunarak adını, türünü ya da sırasını değiştirin.'),
+    h('button', { class: 'btn btn-ghost sm', type: 'button', onclick: async (ev) => busy(ev.currentTarget, async () => { try { await loadCat(); ed.addTables(cat.types.map((t) => [t.id, t.name])); } catch (e) { fail(e); } }) }, icon('plus', 16), 'Masa ekle'),
+    h('button', { class: 'btn btn-ghost sm', type: 'button', onclick: pricesModal }, 'Ücretler'),
+    h('button', { class: 'btn btn-primary sm', type: 'button', onclick: () => setEditing(false) }, 'Bitti'));
+  add(main, kpiBox, toolbar, editBar, grid);
+  function setEditing(v) {
+    editing = v;
+    editBar.hidden = !v;
+    if (editBtn) editBtn.classList.toggle('on', v);
+    grid.classList.toggle('editing', v);
+    if (v) loadCat().catch(fail);
+    render();
+  }
+  function pricesModal() {
+    const draw = () => fill(list, ...data.types.map((t) => h('button', { type: 'button', class: 'type-row', onclick: async () => { m.close(); try { await loadCat(); ed.editType(cat.types.find((x) => x.id === t.id)); } catch (e) { fail(e); } } },
+      h('div', null, h('b', null, t.name)), h('div', { class: 'type-prices mono' }, h('span', null, money(t.hour_price) + '/sa' + (t.uses_controllers && t.hour_price_4 ? ' · 4 kol ' + money(t.hour_price_4) : '')), t.match_price !== null ? h('span', null, 'Maç ' + money(t.match_price)) : null), icon('edit', 16))));
+    const list = h('div', { class: 'type-list' });
+    const m = modal({ title: 'Ücretler', body: h('div', { class: 'form' }, h('p', { class: 'muted sm' }, 'Düzenlemek istediğiniz türe dokunun. Yeni ücretler yeni açılan masalara uygulanır.'), list),
+      actions: [h('button', { class: 'btn btn-ghost', type: 'button', onclick: async () => { m.close(); try { await loadCat(); ed.editType(null); } catch (e) { fail(e); } } }, icon('plus', 16), 'Yeni tür'), h('button', { class: 'btn btn-primary', type: 'button', onclick: () => m.close() }, 'Kapat')] });
+    draw();
+  }
+  async function editTableQuick(t) {
+    try {
+      await loadCat();
+      const ct = cat.tables.find((x) => x.id === t.id);
+      if (ct) ed.editTable(ct, cat.types.map((x) => [x.id, x.name]));
+    } catch (e) { fail(e); }
+  }
 
   async function load(first) {
     try {
@@ -85,18 +120,23 @@ export function tablesView(ctx) {
 
     const cards = list.map((t) => {
       const s = t.session; const l = s ? live(s) : null; const st = status(s, l); const type = typeById[t.type_id] || {};
-      const card = h('button', { type: 'button', class: 'tcard ' + st, 'data-tid': t.id, onclick: () => s ? sessionSheet(s.id) : openModal(t, type) },
+      const go = () => editing ? editTableQuick(t) : (s ? sessionSheet(s.id) : openModal(t, type));
+      const card = h('div', { role: 'button', tabindex: '0', class: 'tcard ' + st, 'data-tid': t.id, onclick: go, onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } } },
         h('div', { class: 'tc-top' }, h('b', { class: 'tc-name' }, t.name), h('span', { class: 'tc-type' }, type.name || '')),
         s ? [
           h('div', { class: 'tc-time mono', 'data-time': '' }, timeText(s, l)),
           h('div', { class: 'tc-sub' }, h('span', { class: 'mono', 'data-amt': '' }, money(l.amount)),
             h('span', { class: 'tc-tags' }, modeTag(s), s.controllers ? h('span', { class: 'tag' }, s.controllers + ' kol') : null, s.items_cents ? h('span', { class: 'tag' }, icon('cup', 12)) : null)),
+          editing ? null : h('div', { class: 'tc-acts' },
+            h('button', { type: 'button', class: 'tc-btn', 'aria-label': t.name + ' ürün ekle', onclick: (e) => { e.stopPropagation(); quickProducts(s, t); } }, icon('cup', 16), 'Ürün'),
+            h('button', { type: 'button', class: 'tc-btn pay', 'aria-label': t.name + ' hesap al', onclick: (e) => { e.stopPropagation(); quickCheckout(s.id); } }, icon('wallet', 16), 'Hesap')),
         ] : [
           h('div', { class: 'tc-free' }, 'Boş'),
-          h('div', { class: 'tc-sub' }, h('span', { class: 'muted sm' }, priceHint(type)), h('span', { class: 'tc-open' }, icon('plus', 16), 'Aç')),
-        ]);
+          h('div', { class: 'tc-sub' }, h('span', { class: 'muted sm' }, priceHint(type)), editing ? null : h('span', { class: 'tc-open' }, icon('plus', 16), 'Aç')),
+        ], editing ? h('span', { class: 'tc-edit' }, icon('edit', 16), 'Düzenle') : null);
       return card;
     });
+    if (editing) cards.push(h('button', { type: 'button', class: 'tcard add-card', onclick: async () => { try { await loadCat(); ed.addTables(cat.types.map((x) => [x.id, x.name])); } catch (e) { fail(e); } } }, icon('plus', 22), h('b', null, 'Masa ekle')));
     fill(grid, ...cards);
     checkAlerts();
     if (openSheet) {
@@ -154,7 +194,10 @@ export function tablesView(ctx) {
 
   /* ---------- Masa açma ---------- */
   function openModal(t, type) {
-    let mode = 'open', ctrl = 2, minutes = 60;
+    const memKey = 'dnl_open_' + type.id;
+    let mem = {};
+    try { mem = JSON.parse(localStorage.getItem(memKey) || '{}') || {}; } catch { /* yok */ }
+    let mode = ['open', 'fixed', 'match'].includes(mem.mode) ? mem.mode : 'open', ctrl = mem.ctrl === 4 ? 4 : 2, minutes = mem.minutes >= 5 && mem.minutes <= 1440 ? mem.minutes : 60;
     const usesCtrl = !!type.uses_controllers; const hasMatch = type.match_price !== null && type.match_price !== undefined;
     const note = inp('note', { maxlength: 200, placeholder: 'İsteğe bağlı (ör. müşteri adı)' });
     const custom = inp('custom', { inputmode: 'numeric', placeholder: 'dk', class: 'inp mono', style: { maxWidth: '110px' } });
@@ -176,20 +219,46 @@ export function tablesView(ctx) {
     };
     custom.addEventListener('input', () => { const v = parseInt(custom.value, 10); if (v >= 5 && v <= 1440) { minutes = v; $$('.seg button', durBox).forEach((b) => { b.classList.remove('on'); b.setAttribute('aria-checked', 'false'); }); renderInfo(); } });
     const modes = [['open', 'Açık süre'], ['fixed', 'Sabit süre']]; if (hasMatch) modes.push(['match', 'Maç başı']);
+    if (mode === 'match' && !hasMatch) mode = 'open';
     const body = h('div', { class: 'form' },
       h('div', { class: 'field' }, h('span', { class: 'lbl' }, 'Ücretlendirme'), seg(modes, mode, (v) => { mode = v; renderDur(); renderInfo(); })),
       usesCtrl ? h('div', { class: 'field' }, h('span', { class: 'lbl' }, 'Kol sayısı'), seg([[2, '2 kol'], [4, '4 kol']], ctrl, (v) => { ctrl = v; renderInfo(); })) : null,
       durBox, info, field('Not', note));
     renderDur(); renderInfo();
     const ok = h('button', { class: 'btn btn-primary', type: 'button' }, icon('pad', 18), 'Masayı aç');
-    const m = modal({ title: t.name + ' · Masa aç', body, actions: [h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => m.close() }, 'Vazgeç'), ok] });
+    const m = modal({ title: t.name + ' · Masa aç', body, actions: [
+      canEdit ? h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => { m.close(); editTableQuick(t); } }, icon('edit', 16), 'Masayı düzenle') : null,
+      h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => m.close() }, 'Vazgeç'), ok] });
     ok.onclick = () => busy(ok, async () => {
       if (mode === 'fixed' && !(minutes >= 5 && minutes <= 1440)) { toast('Süre 5 dakika ile 24 saat arasında olmalı.', 'bad'); return; }
       try {
         const s = await post('/sessions', { table_id: t.id, mode, controllers: usesCtrl ? ctrl : null, planned_minutes: mode === 'fixed' ? minutes : null, note: note.value });
+        try { localStorage.setItem(memKey, JSON.stringify({ mode, ctrl, minutes })); } catch { /* yok */ }
         m.close(); toast(`${t.name} açıldı.`, 'good'); await load(false);
         if (s && s.id) { /* kart güncellendi */ }
       } catch (e) { fail(e); if (e.code === 'occupied') { m.close(); load(false); } }
+    });
+  }
+
+  /* ---------- Karttan hızlı işlemler ---------- */
+  function quickProducts(s, t) {
+    productPicker({
+      title: t.name + ' · Ürün ekle',
+      onPick: async (p, qty) => { try { await post(`/sessions/${s.id}/items`, { product_id: p.id, qty }); toast(`${qty}× ${p.name} eklendi.`, 'good', 1800); load(false); return true; } catch (e) { fail(e); return false; } },
+    });
+  }
+  async function quickCheckout(sid) {
+    let d;
+    try { d = await get('/sessions/' + sid); } catch (e) { fail(e); load(false); return; }
+    const at = performance.now();
+    const dt = () => (performance.now() - at) / 1000;
+    checkoutModal({
+      title: d.table_name + ' · Hesap',
+      lines: () => [['Oyun', d.game_cents + Math.round((d.rate_per_hour || 0) * dt() / 3600)], ['Ürünler', d.items_cents]],
+      subtotal: () => d.subtotal_cents + Math.round((d.rate_per_hour || 0) * dt() / 3600), live: d.rate_per_hour > 0,
+      submit: (payload) => post(`/sessions/${sid}/close`, payload),
+      done: (r) => { toast(`Hesap kapatıldı · ${money(r.total_cents)}`, 'good', 5000); load(false); },
+      onStale: () => load(false),
     });
   }
 

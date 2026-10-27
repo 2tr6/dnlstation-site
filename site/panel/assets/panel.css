@@ -156,6 +156,18 @@ a.kpi:hover{border-color:var(--line-2);color:var(--text)}
 .tcard.over::before{background:var(--red)}.tcard.over .tc-time{color:#FF9DA1}
 @keyframes overpulse{50%{box-shadow:0 0 0 3px rgba(242,84,91,.25)}}
 
+/* Masa kartı hızlı işlemler + düzenleme modu */
+.tc-acts{display:flex;gap:6px;margin-top:2px}
+.tc-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;border-radius:9px;border:1px solid var(--line-2);background:rgba(255,255,255,.04);color:var(--text);font-size:13px;font-weight:600;cursor:pointer}
+.tc-btn:hover{background:rgba(255,255,255,.08)}
+.tc-btn.pay{background:var(--violet);border-color:transparent;color:#fff}
+.tc-btn.pay:hover{background:var(--violet-hover)}
+.tc-edit{position:absolute;right:10px;bottom:10px;display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:8px;background:rgba(111,82,242,.2);color:#fff;font-size:12px;font-weight:600}
+.tgrid.editing .tcard{border-style:dashed;border-color:rgba(138,115,255,.55);animation:none}
+.add-card{align-items:center;justify-content:center;color:var(--lilac);border-style:dashed!important;background:transparent}
+.btn.on{background:rgba(111,82,242,.16);border-color:rgba(138,115,255,.55);color:#fff}
+.edit-bar{margin-bottom:12px}
+
 /* Modal */
 .modal{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:24px;animation:fade .18s ease both}
 .modal.out{animation:fadeout .18s ease both}
@@ -378,6 +390,8 @@ input[type=date].inp,input[type=time].inp{color-scheme:dark}
   .tgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .tcard{min-height:132px;padding:14px}.tc-time{font-size:24px}.tc-name{font-size:16px}.tc-type{display:none}
   .tc-sub{flex-wrap:wrap;font-size:13px}.tc-tags{display:none}
+  .tc-btn{min-height:34px;font-size:12.5px;gap:4px}
+  .edit-bar .grow{flex-basis:100%}
   .grid2{grid-template-columns:1fr}
   .modal{padding:0;place-items:end stretch}
   .m-box,.m-box.wide{width:100%;max-height:92vh;max-height:92dvh;border-radius:20px 20px 0 0;border-bottom:0;animation:up .25s var(--ease) both}

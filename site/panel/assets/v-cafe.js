@@ -47,7 +47,11 @@ export async function productPicker({ title, onPick }) {
     productGrid(products, async (p, btn) => {
       await busy(btn, async () => { const ok = await onPick(p, qty); if (ok) { setQty(1); if (p.track_stock) p.stock_qty -= qty; } });
     }));
-  const m = modal({ title, body, wide: true, actions: [h('button', { class: 'btn btn-primary', type: 'button', onclick: () => m.close() }, 'Tamam')] });
+  const newBtn = can('products.manage') ? h('button', { class: 'btn btn-ghost', type: 'button', onclick: async () => {
+    const { productEditors } = await import('./editors.js?v=1');
+    productEditors({ products, set: () => { invalidateMenu(); m.close(); productPicker({ title, onPick }); } }).edit(null);
+  } }, icon('plus', 16), 'Yeni ürün') : null;
+  const m = modal({ title, body, wide: true, actions: [newBtn, h('button', { class: 'btn btn-primary', type: 'button', onclick: () => m.close() }, 'Tamam')] });
 }
 
 export function cafeView(ctx) {

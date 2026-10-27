@@ -165,6 +165,7 @@ let toastBox;
 export function toast(msg, type = 'info', ms = 3800) {
   if (!toastBox) { toastBox = h('div', { class: 'toasts', role: 'status', 'aria-live': 'polite' }); document.body.append(toastBox); }
   const t = h('div', { class: 'toast ' + type }, icon(type === 'bad' ? 'alert' : type === 'good' ? 'check' : 'clock', 18), h('span', null, msg));
+  while (toastBox.childElementCount >= 3) toastBox.firstChild.remove(); // ekranı kaplamasın
   toastBox.append(t);
   setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 300); }, ms);
 }
