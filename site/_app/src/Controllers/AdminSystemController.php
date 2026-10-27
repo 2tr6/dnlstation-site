@@ -10,6 +10,7 @@ use Dnl\Core\Config;
 use Dnl\Core\Db;
 use Dnl\Core\Http;
 use Dnl\Core\HttpError;
+use Dnl\Services\Backup;
 use Dnl\Core\Input;
 use Dnl\Core\Mailer;
 use Dnl\Core\Sms;
@@ -115,6 +116,34 @@ final class AdminSystemController
             'stats' => ['sent_24h' => (int)($stats['sent_24h'] ?? 0), 'failed_24h' => (int)($stats['failed_24h'] ?? 0)],
             'items' => array_map(static fn($r) => ['id' => (int)$r['id'], 'to' => $r['to_phone'], 'kind' => $r['kind'], 'status' => $r['status'], 'error' => $r['error'], 'business_id' => $r['business_id'] ? (int)$r['business_id'] : null, 'at' => Db::iso($r['created_at'])], $items),
         ];
+    }
+
+    /** Yedek listesi ve tutulan adet */
+    public static function backups(): array
+    {
+        AdminAuth::require();
+        return ['items' => Backup::list(), 'keep' => Backup::KEEP];
+    }
+
+    /** Yedek alır (manuel) */
+    public static function backupRun(): array
+    {
+        $aid = AdminAuth::id();
+        $r = Backup::run();
+        AdminAuth::log($aid, 'system.backup', 'system', null, ['file' => $r['name'], 'rows' => $r['rows']]);
+        return ['message' => "Yedek alındı: {$r['name']} ({$r['rows']} satır).", 'items' => Backup::list(), 'keep' => Backup::KEEP];
+    }
+
+    /** Seçilen yedeği siler (ad JSON gövdesinde; yalnızca bizim biçimimiz kabul edilir) */
+    public static function backupDelete(): array
+    {
+        $aid = AdminAuth::id();
+        $in = new Input(Http::json());
+        $name = $in->str('name', 10, 60, true, 'Yedek');
+        $in->check();
+        Backup::delete($name);
+        AdminAuth::log($aid, 'system.backup_delete', 'system', null, ['file' => $name]);
+        return ['message' => 'Yedek silindi.', 'items' => Backup::list(), 'keep' => Backup::KEEP];
     }
 
     public static function testSms(): array
