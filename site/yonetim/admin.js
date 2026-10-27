@@ -255,7 +255,7 @@ function detailView(main, id) {
             h('button', { class: 'btn btn-ghost sm', type: 'button', onclick: lifetimeModal }, b.lifetime ? 'Ömür boyu üyeliği kaldır' : 'Ömür boyu üyelik ver'),
             h('button', { class: 'btn btn-ghost sm', type: 'button', onclick: limitsModal }, 'Sınırlar'),
             b.state === 'suspended'
-              ? h('button', { class: 'btn btn-ghost sm', type: 'button', onclick: async (ev) => { if (await confirmBox('Dondurmayı kaldır', `${b.name} yeniden kullanıma açılsın mı?`, 'Aç')) action(ev.currentTarget, `/admin/businesses/${id}/unsuspend`, {}, 'İşletme açıldı.'); } }, 'Dondurmayı kaldır')
+              ? h('button', { class: 'btn btn-ghost sm', type: 'button', onclick: async (ev) => { const btn = ev.currentTarget; if (await confirmBox('Dondurmayı kaldır', `${b.name} yeniden kullanıma açılsın mı?`, 'Aç')) action(btn, `/admin/businesses/${id}/unsuspend`, {}, 'İşletme açıldı.'); } }, 'Dondurmayı kaldır')
               : h('button', { class: 'btn btn-ghost sm danger-t', type: 'button', onclick: suspendModal }, 'Dondur'))),
         h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', null, 'İletişim ve kullanım')),
           h('dl', { class: 'dl' },
@@ -282,8 +282,8 @@ function detailView(main, id) {
         d.payments.length ? h('ul', { class: 'list' }, d.payments.map((p, i) => h('li', { class: p.voided ? 'void' : '' },
           h('div', null, h('b', { class: 'mono' }, money(p.amount_cents)), ' ', h('span', { class: 'tag' }, `${PLAN[p.plan] || p.plan} · ${p.months} ay`), p.voided ? h('span', { class: 'tag bad' }, 'İptal') : null,
             h('div', { class: 'muted sm' }, `${dateTime(p.created_at)} · ${p.method} · bitiş ${date(p.paid_until_after)}${p.note ? ' · ' + p.note : ''}`)),
-          i === 0 && !p.voided ? h('div', { class: 'r' }, h('button', { class: 'btn btn-ghost sm danger-t', type: 'button', onclick: async (ev) => {
-            if (await confirmBox('Ödeme kaydını iptal et', `${money(p.amount_cents)} tutarındaki kayıt iptal edilsin ve bitiş tarihi ${p.paid_until_before ? date(p.paid_until_before) : 'önceki haline'} geri alınsın mı?`, 'İptal et', true)) action(ev.currentTarget, `/admin/payments/${p.id}/void`, {}, 'Ödeme kaydı iptal edildi.');
+          i === 0 && !p.voided ? h('div', { class: 'r' }, h('button', { class: 'btn btn-ghost sm danger-t', type: 'button', onclick: async (ev) => { const btn = ev.currentTarget;
+            if (await confirmBox('Ödeme kaydını iptal et', `${money(p.amount_cents)} tutarındaki kayıt iptal edilsin ve bitiş tarihi ${p.paid_until_before ? date(p.paid_until_before) : 'önceki haline'} geri alınsın mı?`, 'İptal et', true)) action(btn, `/admin/payments/${p.id}/void`, {}, 'Ödeme kaydı iptal edildi.');
           } }, 'İptal') ) : null))) : h('p', { class: 'muted sm' }, 'Ödeme kaydı yok.')),
       actLog,
       h('div', { class: 'grid2' },
@@ -403,8 +403,9 @@ function detailView(main, id) {
   }
   function userMenu(x) {
     const act = (a, label, danger) => h('button', { class: 'sheet-item' + (danger ? ' danger' : ''), type: 'button', onclick: async (ev) => {
+      const btn = ev.currentTarget; // await sonrası currentTarget null olur; önce saklanır
       if (!await confirmBox(label, `${x.name} (${x.email}) için “${label}” yapılsın mı?`, 'Onayla', danger)) return;
-      m.close(); action(ev.currentTarget, a === 'make_owner' ? `/admin/users/${x.id}/make-owner` : `/admin/users/${x.id}/action`, a === 'make_owner' ? {} : { action: a }, 'İşlem tamamlandı.');
+      m.close(); action(btn, a === 'make_owner' ? `/admin/users/${x.id}/make-owner` : `/admin/users/${x.id}/action`, a === 'make_owner' ? {} : { action: a }, a === 'resend_verify' ? 'Doğrulama e-postası gönderildi.' : 'İşlem tamamlandı.');
     } }, label);
     const m = modal({ title: x.name, body: h('div', { class: 'user-acts' },
       x.locked ? act('unlock', 'Kilidi aç') : null,
