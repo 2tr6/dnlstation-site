@@ -53,7 +53,11 @@ final class AuthController
         }
         $password = $in->raw('password', 1, 128, 'Şifre');
         $confirm = $in->raw('password_confirm', 1, 128, 'Şifre tekrarı');
-        $plan = $in->enum('plan', array_keys(Subscription::PLANS), 'pro', 'Paket');
+        // "sinirsiz" (ömür boyu) kayda Salon+ olarak girer; ömür boyu üyelik yalnızca ödeme onayından sonra açılır
+        $plan = $in->enum('plan', array_merge(array_keys(Subscription::PLANS), ['sinirsiz']), 'pro', 'Paket');
+        if ($plan === 'sinirsiz') {
+            $plan = 'salon';
+        }
         $period = $in->enum('period', ['aylik', 'yillik'], 'yillik', 'Ödeme dönemi');
         $types = array_values(array_intersect(['playstation', 'bilardo', 'okey', 'langirt', 'masa-tenisi', 'diger'], array_filter($in->arr('types'), 'is_string')));
         if (!$in->bool('accept')) {

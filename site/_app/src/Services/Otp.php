@@ -36,6 +36,8 @@ final class Otp
         }
         RateLimiter::enforce('otp:phone:' . $to, 3, 600, 'Bu numaraya çok fazla kod gönderildi. Lütfen 10 dakika sonra tekrar deneyin.');
         RateLimiter::enforce('otp:ip:' . $ip, 10, 3600, 'Kısa sürede çok fazla kod istediniz. Lütfen daha sonra tekrar deneyin.');
+        // SMS maliyeti ve kötüye kullanım (SMS pumping) için site genelinde günlük üst sınır
+        RateLimiter::enforce('otp:global', 500, 86400, 'Şu an doğrulama kodu gönderilemiyor. Lütfen daha sonra tekrar deneyin.');
 
         $code = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         $now = time();

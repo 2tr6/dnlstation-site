@@ -152,10 +152,13 @@
     var yearly = per.value === 'yillik';
     $$('input[name="paket"]').forEach(function (inp) {
       var sm = inp.parentNode.querySelector('small');
-      if (sm) sm.textContent = yearly ? tl(inp.getAttribute('data-y')) + '/yıl' : tl(inp.getAttribute('data-m')) + '/ay';
+      if (sm && inp.getAttribute('data-life')) sm.textContent = tl(inp.getAttribute('data-life')) + ' tek seferlik';
+      else if (sm) sm.textContent = yearly ? tl(inp.getAttribute('data-y')) + '/yıl' : tl(inp.getAttribute('data-m')) + '/ay';
     });
     var sel = $('input[name="paket"]:checked'), sum = $('#plan-sum');
-    if (sel && sum) {
+    if (sel && sum && sel.getAttribute('data-life')) {
+      sum.innerHTML = '<b>Sınırsız</b> · ' + tl(sel.getAttribute('data-life')) + ' tek seferlik · deneme sonrası Paketim’den satın alırsınız';
+    } else if (sel && sum) {
       var name = sel.parentNode.querySelector('b').textContent, y = +sel.getAttribute('data-y'), mo = +sel.getAttribute('data-m');
       sum.innerHTML = yearly
         ? '<b>' + esc(name) + '</b> · yıllık ' + tl(y) + ' · aylık ortalama ' + tl(Math.round(y / 12))
