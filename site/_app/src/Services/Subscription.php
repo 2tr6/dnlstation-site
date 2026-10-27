@@ -10,6 +10,9 @@ use Dnl\Core\Db;
 /** Deneme / paket durumu ve paket sınırları. */
 final class Subscription
 {
+    /** Ömür boyu (tek seferlik) üyelik: kuruş cinsinden. Sınırlar kalkar, aylık ücret yoktur. */
+    public const LIFETIME = ['name' => 'Sınırsız', 'price' => 999000];
+
     public const PLANS = [
         'baslangic' => ['name' => 'Başlangıç', 'monthly' => 15900, 'yearly' => 159000, 'max_tables' => 8, 'max_staff' => 2],
         'pro' => ['name' => 'Pro', 'monthly' => 25900, 'yearly' => 259000, 'max_tables' => 1000, 'max_staff' => 50],
@@ -31,7 +34,7 @@ final class Subscription
     public static function status(array $b): array
     {
         if ((int)($b['lifetime'] ?? 0) === 1) {
-            return ['plan' => $b['plan'], 'plan_name' => self::PLANS[$b['plan']]['name'] ?? $b['plan'], 'period' => $b['billing_period'], 'state' => 'lifetime', 'until' => null, 'days_left' => 99999, 'lifetime' => true];
+            return ['plan' => $b['plan'], 'plan_name' => self::LIFETIME['name'], 'period' => $b['billing_period'], 'state' => 'lifetime', 'until' => null, 'days_left' => 99999, 'lifetime' => true];
         }
         $now = Db::now();
         $paid = $b['paid_until'] !== null && $b['paid_until'] > $now;
@@ -53,6 +56,9 @@ final class Subscription
         $ov = $b[$key . '_override'] ?? null;
         if ($ov !== null && $ov !== '') {
             return (int)$ov;
+        }
+        if ((int)($b['lifetime'] ?? 0) === 1) {
+            return 100000; // ömür boyu üyelikte sınır yok
         }
         return (int)(self::PLANS[$b['plan']][$key] ?? self::PLANS['pro'][$key]);
     }

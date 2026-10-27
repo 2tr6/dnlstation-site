@@ -25,6 +25,7 @@ final class BillingController
             'subscription' => Subscription::status($b),
             'reference' => 'DNL-' . str_pad((string)$b['id'], 5, '0', STR_PAD_LEFT),
             'plans' => array_map(static fn($k, $v) => ['key' => $k, 'name' => $v['name'], 'monthly' => $v['monthly'], 'yearly' => $v['yearly'], 'max_tables' => $v['max_tables'], 'max_staff' => $v['max_staff']], array_keys(Subscription::PLANS), Subscription::PLANS),
+            'lifetime' => ['name' => Subscription::LIFETIME['name'], 'price' => Subscription::LIFETIME['price'], 'owned' => (int)($b['lifetime'] ?? 0) === 1],
             'payment_info' => $s['payment_info'],
             'whatsapp' => $s['whatsapp'],
             'support_email' => $s['support_email'],

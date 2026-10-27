@@ -56,8 +56,8 @@ try:
     r = o.post('/catalog/tables', {'table_type_id': tid, 'prefix': 'PS', 'count': 3})
     check('Özel masa sınırı uygulanır', r.status_code == 422 and err(r) == 'plan_limit', r.text)
     a.post(f'/admin/businesses/{bid}/limits', {'max_tables': None, 'max_staff': None})
-    check('Sınır kaldırılınca paket sınırına döner', d(a.get(f'/admin/businesses/{bid}'))['business']['max_tables'] == 8)
     a.post(f'/admin/businesses/{bid}/lifetime', {'on': False, 'reason': 'deneme'})
+    check('Sınır kaldırılınca paket sınırına döner', d(a.get(f'/admin/businesses/{bid}'))['business']['max_tables'] == 8)
     sql("UPDATE businesses SET trial_ends_at='2099-01-01 00:00:00' WHERE id=?", (bid,))
 
     print('== Bilgi, e-posta, sahiplik ==')
