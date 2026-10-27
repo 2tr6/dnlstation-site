@@ -68,6 +68,7 @@ final class Mailer
             'Reply-To: ' . $from,
             'MIME-Version: 1.0',
             'X-Mailer: DNL Station',
+            'List-Unsubscribe: <mailto:support@dnlstation.com.tr?subject=Abonelik%20iptali>',
         ];
         [$ctype, $cte, $mimeBody] = self::mime($body, $html);
         $headers[] = $ctype;
@@ -113,6 +114,7 @@ final class Mailer
             'Subject: ' . $subjectEnc,
             'Message-ID: <' . bin2hex(random_bytes(12)) . '@' . $domain . '>',
             'MIME-Version: 1.0',
+            'List-Unsubscribe: <mailto:support@dnlstation.com.tr?subject=Abonelik%20iptali>',
             $ctype,
             ...($cte !== null ? ['Content-Transfer-Encoding: ' . $cte] : []),
             '',
