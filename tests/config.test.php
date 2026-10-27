@@ -8,5 +8,6 @@ return [
     'migrate_token' => 'test-migrate-token-0123456789abcdef0123456789',
     'log_dir' => __DIR__ . '/tmp/logs',
     'sms' => ['provider' => 'file', 'signup_otp' => false],
+    'require_email_verification' => false,
     'debug' => true,
 ];

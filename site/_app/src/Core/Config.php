@@ -39,7 +39,7 @@ final class Config
             'migrate_token' => '',
             // SMS (NetGSM). provider: off | netgsm. signup_otp: true ise kayıtta SMS doğrulaması zorunlu olur.
             'sms' => ['provider' => 'off', 'usercode' => '', 'password' => '', 'header' => '', 'signup_otp' => false],
-            'require_email_verification' => false,
+            'require_email_verification' => true,
             'force_secure_cookies' => true,
             'log_dir' => DNL_ROOT . '/storage/logs',
             'debug' => false,

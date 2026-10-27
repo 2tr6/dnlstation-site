@@ -71,9 +71,9 @@ $r->add('GET', '/billing', fn() => C\BillingController::show(), ['auth' => $all]
 $r->add('POST', '/auth/forgot', fn() => C\AuthController::forgot());
 $r->add('POST', '/auth/reset', fn() => C\AuthController::reset());
 $r->add('POST', '/auth/verify', fn() => C\AuthController::verify());
-$r->add('POST', '/auth/resend-verification', fn() => C\AuthController::resendVerification(), ['auth' => $all, 'allow_pw_change' => true]);
-$r->add('GET', '/me', fn() => C\AuthController::me(), ['auth' => $all, 'allow_pw_change' => true, 'allow_suspended' => true]);
-$r->add('POST', '/account/password', fn() => C\AuthController::changePassword(), ['auth' => $all, 'allow_pw_change' => true]);
+$r->add('POST', '/auth/resend-verification', fn() => C\AuthController::resendVerification(), ['auth' => $all, 'allow_pw_change' => true, 'allow_unverified' => true]);
+$r->add('GET', '/me', fn() => C\AuthController::me(), ['auth' => $all, 'allow_pw_change' => true, 'allow_suspended' => true, 'allow_unverified' => true]);
+$r->add('POST', '/account/password', fn() => C\AuthController::changePassword(), ['auth' => $all, 'allow_pw_change' => true, 'allow_unverified' => true]);
 
 // İşletme paneli — yetki kontrolleri denetleyicilerde Perm::need ile yapılır.
 // 'write' => true: deneme/paket süresi bitince yazma işlemleri engellenir (okuma ve raporlar açık kalır).

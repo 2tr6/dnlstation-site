@@ -52,7 +52,7 @@ try:
 
     print('== Kurulum ==')
     r = own.get('/setup/presets')
-    check('Hazır şablonlar', r.status_code == 200 and len(d(r)['presets']) == 6, r.text)
+    check('Hazır şablonlar', r.status_code == 200 and len(d(r)['presets']) == 7, r.text)
     check('Kurulum yapılmadı', d(own.get('/dashboard'))['setup_done'] is False)
     r = own.post('/setup/quick', {'items': [
         {'kind': 'playstation', 'count': 4, 'hour_price': '100', 'hour_price_4': '150', 'match_price': '25'},

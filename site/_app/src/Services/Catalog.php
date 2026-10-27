@@ -12,7 +12,7 @@ use Dnl\Core\HttpError;
 /** Masa türleri (tarifeler) ve masalar. */
 final class Catalog
 {
-    public const KINDS = ['playstation', 'bilardo', 'okey', 'langirt', 'masa-tenisi', 'diger'];
+    public const KINDS = ['playstation', 'bilardo', 'okey', 'langirt', 'masa-tenisi', 'vr', 'diger'];
 
     /** Hızlı kurulum şablonları (fiyatlar kuruş; kurulum ekranında düzenlenebilir) */
     public const PRESETS = [
@@ -21,6 +21,7 @@ final class Catalog
         'okey' => ['name' => 'Okey', 'uses_controllers' => 0, 'hour_price' => 6000, 'hour_price_4' => null, 'match_price' => null, 'match_price_4' => null, 'prefix' => 'Okey', 'count' => 4],
         'langirt' => ['name' => 'Langırt', 'uses_controllers' => 0, 'hour_price' => 8000, 'hour_price_4' => null, 'match_price' => 2000, 'match_price_4' => null, 'prefix' => 'Langırt', 'count' => 1],
         'masa-tenisi' => ['name' => 'Masa Tenisi', 'uses_controllers' => 0, 'hour_price' => 8000, 'hour_price_4' => null, 'match_price' => null, 'match_price_4' => null, 'prefix' => 'Masa Tenisi', 'count' => 1],
+        'vr' => ['name' => 'VR', 'uses_controllers' => 0, 'hour_price' => 15000, 'hour_price_4' => null, 'match_price' => null, 'match_price_4' => null, 'prefix' => 'VR', 'count' => 2],
         'diger' => ['name' => 'Diğer', 'uses_controllers' => 0, 'hour_price' => 5000, 'hour_price_4' => null, 'match_price' => null, 'match_price_4' => null, 'prefix' => 'Masa', 'count' => 1],
     ];
 

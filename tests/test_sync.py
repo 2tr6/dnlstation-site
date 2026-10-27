@@ -25,6 +25,6 @@ check('Ana sayfa JSON-LD sınırsız teklifi', f'"price": "{life_tl}"' in IDX)
 print('== Üye ol ==')
 for key, data_m, data_y in [('baslangic', 159, 1590), ('pro', 259, 2590), ('salon', 449, 4490)]:
     check(f'Üye ol {key} seçeneği sunucuyla aynı', f'value="{key}" data-m="{data_m}" data-y="{data_y}"' in UYE)
-check('Üye ol sınırsız seçeneği sunucuyla aynı', f'value="sinirsiz" data-m="0" data-y="0" data-life="{life_tl}"' in UYE)
+check('Üye ol ekranında Sınırsız seçeneği yok (ömür boyu yalnızca satın alma ile)', 'value="sinirsiz"' not in UYE)
 check('Üye ol sınırsız seçeneği kayda kabul ediliyor', 'sinirsiz' in open(f'{ROOT}/site/_app/src/Controllers/AuthController.php', encoding='utf-8').read())
 sys.exit(summary())

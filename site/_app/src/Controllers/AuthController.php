@@ -59,7 +59,7 @@ final class AuthController
             $plan = 'salon';
         }
         $period = $in->enum('period', ['aylik', 'yillik'], 'yillik', 'Ödeme dönemi');
-        $types = array_values(array_intersect(['playstation', 'bilardo', 'okey', 'langirt', 'masa-tenisi', 'diger'], array_filter($in->arr('types'), 'is_string')));
+        $types = array_values(array_intersect(['playstation', 'bilardo', 'okey', 'langirt', 'masa-tenisi', 'vr', 'diger'], array_filter($in->arr('types'), 'is_string')));
         if (!$in->bool('accept')) {
             $in->error('accept', 'Devam etmek için kullanım şartlarını onaylamanız gerekiyor.');
         }
@@ -167,9 +167,6 @@ final class AuthController
         if ($susp !== null) {
             SecurityLog::add('login_suspended', $email, (int)$user['business_id']);
             throw new HttpError(403, 'İşletme hesabınız askıya alındı. Destek için bizimle iletişime geçin.', 'suspended');
-        }
-        if (Config::get('require_email_verification') && $user['email_verified_at'] === null) {
-            throw new HttpError(403, 'Giriş yapmadan önce e-posta adresinizi doğrulayın. Doğrulama bağlantısı e-postanıza gönderildi.', 'email_unverified');
         }
         if (Auth::needsRehash($user['password_hash'])) {
             Db::update('users', ['password_hash' => Auth::hash($password)], ['id' => (int)$user['id']]);

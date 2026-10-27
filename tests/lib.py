@@ -11,12 +11,12 @@ MIGRATE_TOKEN = 'test-migrate-token-0123456789abcdef0123456789'
 
 
 class Server:
-    def __init__(self, fresh=True):
+    def __init__(self, fresh=True, config='config.test.php'):
         if fresh:
             shutil.rmtree(TMP, ignore_errors=True)
             shutil.rmtree(MAILDIR, ignore_errors=True)
         os.makedirs(TMP, exist_ok=True)
-        env = dict(os.environ, DNL_CONFIG=os.path.join(TESTS, 'config.test.php'))
+        env = dict(os.environ, DNL_CONFIG=os.path.join(TESTS, config))
         self.p = subprocess.Popen(['php', '-S', '127.0.0.1:8790', '-t', os.path.join(ROOT, 'site'), os.path.join(TESTS, 'router.php')],
                                   env=env, stdout=open(os.path.join(TMP, 'server.log'), 'w'), stderr=subprocess.STDOUT)
         for _ in range(50):

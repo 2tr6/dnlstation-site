@@ -109,6 +109,10 @@ final class Router
                 if ((int)$u['must_change_password'] === 1 && empty($opts['allow_pw_change'])) {
                     throw new HttpError(403, 'Devam etmeden önce şifrenizi değiştirmeniz gerekiyor.', 'must_change_password');
                 }
+                // İşletme sahibi e-postasını doğrulamadan panele giremez (yalnızca hesap / doğrulama uçları açık)
+                if ($u['role'] === 'owner' && $u['email_verified_at'] === null && Config::get('require_email_verification', true) && empty($opts['allow_unverified'])) {
+                    throw new HttpError(403, 'Devam etmek için e-posta adresinizi doğrulayın. Doğrulama bağlantısını e-postanızda bulabilirsiniz.', 'email_unverified');
+                }
                 // Dondurulan işletme: oturumlar kapatılır, yalnızca durum bilgisi (/me, çıkış) alınabilir
                 $biz = Auth::business();
                 if ($biz !== null && ($biz['suspended_at'] ?? null) !== null && empty($opts['allow_suspended'])) {

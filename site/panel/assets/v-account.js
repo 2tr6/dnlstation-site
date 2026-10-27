@@ -37,6 +37,7 @@ export function accountView(ctx) {
   const sub = me.subscription;
   add(main, 
     forced ? h('div', { class: 'banner warn' }, icon('alert', 18), h('span', null, 'Güvenliğiniz için size verilen geçici şifreyi değiştirmeniz gerekiyor. Ardından panele erişebilirsiniz.')) : null,
+    (!forced && me.user.role === 'owner' && !me.user.verified) ? h('div', { class: 'banner warn' }, icon('alert', 18), h('span', null, 'Panele devam etmek için e-posta adresinizi doğrulayın. Bağlantı e-posta kutunuzda; spam klasörüne de bakın. Gelmediyse aşağıdan yeniden gönderebilirsiniz.')) : null,
     h('div', { class: 'grid2' },
       h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', null, 'Profil')),
         h('dl', { class: 'dl' },

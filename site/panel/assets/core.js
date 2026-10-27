@@ -117,7 +117,7 @@ export function localDate(d = new Date()) {
   const p = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Istanbul', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
   return p; // YYYY-MM-DD
 }
-export const KIND_LABEL = { playstation: 'PlayStation', bilardo: 'Bilardo', okey: 'Okey', langirt: 'Langırt', 'masa-tenisi': 'Masa Tenisi', diger: 'Diğer' };
+export const KIND_LABEL = { playstation: 'PlayStation', bilardo: 'Bilardo', okey: 'Okey', langirt: 'Langırt', 'masa-tenisi': 'Masa Tenisi', vr: 'VR', diger: 'Diğer' };
 export const METHOD_LABEL = { cash: 'Nakit', card: 'Kart', other: 'Diğer', credit: 'Veresiye' };
 export const ROLE_LABEL = { owner: 'İşletme sahibi', manager: 'Müdür', staff: 'Personel' };
 
@@ -148,6 +148,10 @@ export async function api(method, path, body) {
   if (res.status === 401) onAuthLost('expired');
   if (res.status === 403 && e.code === 'must_change_password') onAuthLost('must_change');
   if (res.status === 403 && e.code === 'suspended') onAuthLost('suspended');
+  if (res.status === 403 && e.code === 'email_unverified' && location.hash !== '#/hesap') {
+    location.hash = '#/hesap';
+    toast('Devam etmek için e-posta adresinizi doğrulayın.', 'warn', 5000);
+  }
   if (res.status === 419) {
     // CSRF anahtarı yenilendi: bir kez yeniden dene
     if (!api._retry) {
